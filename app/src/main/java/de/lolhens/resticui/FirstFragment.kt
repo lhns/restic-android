@@ -1,11 +1,11 @@
 package de.lolhens.resticui
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.navigation.fragment.findNavController
+import androidx.fragment.app.Fragment
+import com.google.android.material.snackbar.Snackbar
 import de.lolhens.resticui.databinding.FragmentFirstBinding
 
 /**
@@ -20,8 +20,8 @@ class FirstFragment : Fragment() {
     private val binding get() = _binding!!
 
     override fun onCreateView(
-            inflater: LayoutInflater, container: ViewGroup?,
-            savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View? {
 
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
@@ -32,8 +32,20 @@ class FirstFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.buttonFirst.setOnClickListener {
-            findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)
+        binding.buttonLogin.setOnClickListener {
+//            findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)
+
+            val restic = ResticS3(
+                requireContext(),
+
+                )
+
+            restic.snapshots().thenAccept { result ->
+                println(result.joinToString("\n"))
+
+                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show()
+            }
         }
     }
 
