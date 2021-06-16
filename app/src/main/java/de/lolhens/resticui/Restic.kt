@@ -6,6 +6,7 @@ import java.io.InputStream
 import java.net.InetAddress
 import java.net.URI
 import java.nio.charset.StandardCharsets
+import java.util.*
 import java.util.concurrent.CompletableFuture
 
 class ResticS3(
@@ -42,15 +43,24 @@ class ResticS3(
     override fun repository(): String = "s3:$s3Url"
 }
 
-abstract class Restic(
-    context: Context,
-    private val repositoryPassword: String
-) {
-    private val lib = File(context.applicationInfo.nativeLibraryDir)
-    private val cache = context.cacheDir
+interface ResticStorage {
+    companion object {
+        fun fromContext(context: Context): ResticStorage = object: ResticStorage {
+            private val _lib =       File(context.applicationInfo.nativeLibraryDir)
+            override fun lib(): File = _lib
+            override fun cache(): File = context.cacheDir
+        }
+    }
 
-    private val resticBin = lib.resolve("restic")
-    private val prootBin = lib.resolve("proot")
+    fun lib(): File
+    fun cache(): File
+}
+
+abstract class Restic(
+    private val storage: ResticStorage
+) {
+    private val resticBin = storage.lib().resolve("restic")
+    private val prootBin = storage.lib().resolve("proot")
 
     protected open fun args(): CompletableFuture<Array<String>> =
         CompletableFuture.supplyAsync {
@@ -59,7 +69,7 @@ abstract class Restic(
                 "${address.hostAddress} $host"
             }.joinToString("\n")
 
-            val hostsFile = File.createTempFile("hosts", "", cache)
+            val hostsFile = File.createTempFile("hosts", "", storage.cache())
             hostsFile.writeText(hostsFileContent, StandardCharsets.UTF_8)
             hostsFile.deleteOnExit() // TODO
 
@@ -69,7 +79,7 @@ abstract class Restic(
                 "-b", "/system:/system",
                 "-b", "/storage:/storage",
                 "-b", "/data:/data",
-                "-b", cache.absolutePath + ":/cache",
+                "-b", storage.cache().absolutePath + ":/cache",
                 "--kill-on-exit",
                 resticBin.absolutePath,
                 "--json",
@@ -80,12 +90,11 @@ abstract class Restic(
         CompletableFuture.completedFuture(
             arrayOf(
                 Pair("PATH", "/system/bin"),
-                Pair("LD_LIBRARY_PATH", lib.absolutePath),
-                Pair("PROOT_LOADER", lib.resolve("loader").absolutePath),
-                Pair("PROOT_LOADER_32", lib.resolve("loader32").absolutePath),
-                Pair("PROOT_TMP_DIR", cache.absolutePath),
-                Pair("RESTIC_CACHE_DIR", "/cache/restic"),
-                Pair("RESTIC_PASSWORD", repositoryPassword)
+                Pair("LD_LIBRARY_PATH", storage.lib().absolutePath),
+                Pair("PROOT_LOADER", storage.lib().resolve("loader").absolutePath),
+                Pair("PROOT_LOADER_32", storage.lib().resolve("loader32").absolutePath),
+                Pair("PROOT_TMP_DIR", storage.cache().absolutePath),
+                Pair("RESTIC_CACHE_DIR", "/cache/restic")
             )
         )
 
@@ -99,12 +108,14 @@ abstract class Restic(
         }
     }
 
-    protected fun restic(args: Array<String>): CompletableFuture<Pair<Array<String>, Array<String>>> {
-        return args().thenCompose { args0 ->
+    protected fun restic(args: Array<String>, vars: Array<Pair<String, String>>, repositoryPassword: String? = null): CompletableFuture<Pair<Array<String>, Array<String>>> =
+        args().thenCompose { args0 ->
             vars().thenCompose { vars0 ->
+                val passwordVar = Optional.ofNullable(repositoryPassword).map { Pair("RESTIC_PASSWORD", it) }
+
                 val process = Runtime.getRuntime().exec(
                     args0.plus(args),
-                    vars0.map { (key, value) -> "$key=$value" }.toTypedArray()
+                    vars0/*.plus(passwordVar)*/.plus(vars).map { (key, value) -> "$key=$value" }.toTypedArray()
                 )
 
                 fun InputStream.linesAsync() = CompletableFuture.supplyAsync {
@@ -121,5 +132,4 @@ abstract class Restic(
                 }
             }
         }
-    }
 }
