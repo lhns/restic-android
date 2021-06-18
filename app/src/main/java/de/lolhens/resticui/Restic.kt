@@ -1,7 +1,6 @@
 package de.lolhens.resticui
 
 import android.content.Context
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -25,11 +24,16 @@ interface ResticStorage {
             private val _lib = File(context.applicationInfo.nativeLibraryDir)
             override fun lib(): File = _lib
             override fun cache(): File = context.cacheDir
+            override fun storage(): List<File> =
+                listOf(
+                    File("/storage")
+                ).filter { it.exists() }
         }
     }
 
     fun lib(): File
     fun cache(): File
+    fun storage(): List<File>
 }
 
 data class ResticException(val exitCode: Int, val stderr: List<String>) :
@@ -44,12 +48,13 @@ class Restic(
     private val loader32 = storage.lib().resolve("loader32")
 
     private fun binds(hostsFile: File): List<Pair<String, String>> = listOf(
-        Pair(hostsFile.absolutePath, "/etc/hosts"),
         Pair("/system", "/system"),
-        Pair("/storage", "/storage"),
         Pair("/data", "/data"),
-        Pair(storage.cache().absolutePath, "/cache")
-    )
+        Pair(hostsFile.absolutePath, "/etc/hosts"),
+    ).plus(storage.storage().map {
+        val path = it.absolutePath
+        Pair(path, path)
+    })
 
     private fun args(binds: List<Pair<String, String>>): List<String> =
         listOf(
@@ -69,7 +74,7 @@ class Restic(
         Pair("PROOT_LOADER", loader.absolutePath),
         Pair("PROOT_LOADER_32", loader32.absolutePath),
         Pair("PROOT_TMP_DIR", storage.cache().absolutePath),
-        Pair("RESTIC_CACHE_DIR", "/cache/restic")
+        Pair("RESTIC_CACHE_DIR", storage.cache().resolve("restic").absolutePath)
     )
 
     private fun hostsFile(hosts: List<String>): CompletableFuture<File> =
@@ -92,7 +97,9 @@ class Restic(
     fun restic(
         args: List<String>,
         vars: List<Pair<String, String>> = emptyList(),
-        hosts: List<String> = emptyList()
+        hosts: List<String> = emptyList(),
+        filterOut: ((String) -> Boolean)? = null,
+        filterErr: ((String) -> Boolean)? = null
     ): CompletableFuture<Pair<List<String>, List<String>>> =
         hostsFile(hosts).thenCompose { hostsFile ->
             CompletableFuture.supplyAsync {
@@ -101,12 +108,14 @@ class Restic(
                     vars().plus(vars).map { (key, value) -> "$key=$value" }.toTypedArray()
                 )
             }.thenCompose { process ->
-                fun InputStream.linesAsync() = CompletableFuture.supplyAsync {
-                    this.bufferedReader().lineSequence().toList()
-                }
+                fun InputStream.linesAsync(filter: ((String) -> Boolean)?) =
+                    CompletableFuture.supplyAsync {
+                        this.bufferedReader().lineSequence()
+                            .filter { if (filter == null) true else filter(it) }.toList()
+                    }
 
-                val outFuture = process.inputStream.linesAsync()
-                val errFuture = process.errorStream.linesAsync()
+                val outFuture = process.inputStream.linesAsync(filterOut)
+                val errFuture = process.errorStream.linesAsync(filterErr)
 
                 outFuture.thenCompose { out ->
                     errFuture.thenApplyAsync { err ->
@@ -127,19 +136,19 @@ class Restic(
         restic(listOf("version")).thenApply { (out, _) -> out[0] }
 }
 
-object SnapshotIdSerializer : KSerializer<SnapshotId> {
+object ResticSnapshotIdSerializer : KSerializer<ResticSnapshotId> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("SnapshotId", PrimitiveKind.STRING)
 
-    override fun serialize(encoder: Encoder, value: SnapshotId) =
+    override fun serialize(encoder: Encoder, value: ResticSnapshotId) =
         encoder.encodeString(value.id)
 
-    override fun deserialize(decoder: Decoder): SnapshotId =
-        SnapshotId(decoder.decodeString())
+    override fun deserialize(decoder: Decoder): ResticSnapshotId =
+        ResticSnapshotId(decoder.decodeString())
 }
 
-@Serializable(with = SnapshotIdSerializer::class)
-data class SnapshotId(val id: String) {
+@Serializable(with = ResticSnapshotIdSerializer::class)
+data class ResticSnapshotId(val id: String) {
     val short get() = id.take(8)
 }
 
@@ -163,13 +172,50 @@ object FileSerializer : KSerializer<File> {
 }
 
 @Serializable
-data class Snapshot(
+data class ResticSnapshot(
     val time: @Serializable(with = ZonedDateTimeSerializer::class) ZonedDateTime,
-    val parent: SnapshotId? = null,
+    val parent: ResticSnapshotId? = null,
     val tree: String,
     val paths: List<@Serializable(with = FileSerializer::class) File>,
     val hostname: String,
     val id: String//SnapshotId
+)
+
+@Serializable
+data class ResticFile(
+    val name: String,
+    val type: String,
+    val path: @Serializable(with = FileSerializer::class) File,
+    val mtime: @Serializable(with = ZonedDateTimeSerializer::class) ZonedDateTime,
+    val atime: @Serializable(with = ZonedDateTimeSerializer::class) ZonedDateTime,
+    val ctime: @Serializable(with = ZonedDateTimeSerializer::class) ZonedDateTime
+)
+
+@Serializable
+data class ResticBackupProgress(
+    val seconds_elapsed: Int,
+    val percent_done: Int,
+    val total_files: Long? = null,
+    val files_done: Long,
+    val total_bytes: Long? = null,
+    val bytes_done: Long = 0
+)
+
+@Serializable
+data class ResticBackupSummary(
+    val files_new: Long,
+    val files_changed: Long,
+    val files_unmodified: Long,
+    val dirs_new: Long,
+    val dirs_changed: Long,
+    val dirs_unmodified: Long,
+    val data_blobs: Long,
+    val tree_blobs: Long,
+    val data_added: Long,
+    val total_files_processed: Long,
+    val total_bytes_processed: Long,
+    val total_duration: Double,
+    val snapshot_id: String
 )
 
 abstract class ResticRepo(
@@ -186,7 +232,9 @@ abstract class ResticRepo(
 
     private fun restic(
         args: List<String>,
-        vars: List<Pair<String, String>> = emptyList()
+        vars: List<Pair<String, String>> = emptyList(),
+        filterOut: ((String) -> Boolean)? = null,
+        filterErr: ((String) -> Boolean)? = null
     ) = restic.restic(
         args().plus(args),
         listOf(
@@ -197,39 +245,58 @@ abstract class ResticRepo(
     )
 
     private val format = Json { ignoreUnknownKeys = true }
+    private val filterJson = { line: String -> line.startsWith("{") || line.startsWith("[") }
 
-    fun init(): CompletableFuture<Void> =
-        restic(listOf("--json", "init")).thenApply { (out, err) ->
-            println(out.joinToString("\n"))
-            println(err.joinToString("\n"))
-            null
+    fun init(): CompletableFuture<String> =
+        restic(listOf("init")).thenApply { (out, _) ->
+            out.joinToString("\n")
         }
 
-    fun snapshots(): CompletableFuture<List<Snapshot>> =
-        restic(listOf("--json", "snapshots")).thenApply { (out, err) ->
+    fun snapshots(): CompletableFuture<List<ResticSnapshot>> =
+        restic(
+            listOf("--json", "snapshots"),
+            filterOut = filterJson
+        ).thenApply { (out, _) ->
             val json = out[0]
-            format.decodeFromString<List<Snapshot>>(json)
+            format.decodeFromString<List<ResticSnapshot>>(json)
         }
 
-    fun forget(snapshotId: SnapshotId): CompletableFuture<Void> =
-        restic(listOf("--json", "forget", snapshotId.id)).thenApply { (out, err) ->
-            println(out.joinToString("\n"))
-            println(err.joinToString("\n"))
-            null
+    fun forget(snapshotIds: List<ResticSnapshotId>): CompletableFuture<String> =
+        restic(listOf("forget").plus(snapshotIds.map { it.id })).thenApply { (out, _) ->
+            out.joinToString("\n")
         }
 
-    fun ls(snapshotId: SnapshotId): CompletableFuture<Void> =
-        restic(listOf("--json", "ls", snapshotId.id)).thenApply { (out, err) ->
-            println(out.joinToString("\n"))
-            println(err.joinToString("\n"))
-            null
+    fun ls(snapshotId: ResticSnapshotId): CompletableFuture<Pair<ResticSnapshot, List<ResticFile>>> =
+        restic(
+            listOf("--json", "ls", snapshotId.id),
+            filterOut = filterJson
+        ).thenApply { (out, _) ->
+            val snapshotJson = out[0]
+            val filesJson = out.drop(1)
+            Pair(
+                format.decodeFromString<ResticSnapshot>(snapshotJson),
+                filesJson.map { format.decodeFromString<ResticFile>(it) }
+            )
         }
 
-    fun backup(path: File): CompletableFuture<SnapshotId> =
-        restic(listOf("--json", "backup", path.absolutePath)).thenApply { (out, err) ->
-            println(out.joinToString("\n"))
-            println(err.joinToString("\n"))
-            null
+    fun backup(
+        path: File,
+        onProgress: (ResticBackupProgress) -> Void
+    ): CompletableFuture<ResticBackupSummary> =
+        restic(
+            listOf("--json", "backup", path.absolutePath),
+            filterOut = { line ->
+                val isJson = filterJson(line)
+                if (isJson && line.contains("\"message_type\":\"status\"")) {
+                    val progress = format.decodeFromString<ResticBackupProgress>(line)
+                    onProgress(progress)
+                    false
+                } else
+                    isJson
+            }
+        ).thenApply { (out, _) ->
+            val json = out[0]
+            format.decodeFromString<ResticBackupSummary>(json)
         }
 }
 
