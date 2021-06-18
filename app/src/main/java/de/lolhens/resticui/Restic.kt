@@ -59,13 +59,11 @@ class Restic(
     private fun args(binds: List<Pair<String, String>>): List<String> =
         listOf(
             proot.absolutePath,
+            "--kill-on-exit",
         ).plus(
             binds.flatMap { (from, to) -> listOf("-b", "$from:$to") }
         ).plus(
-            listOf(
-                "--kill-on-exit",
-                restic.absolutePath
-            )
+            restic.absolutePath
         )
 
     private fun vars(): List<Pair<String, String>> = listOf(
