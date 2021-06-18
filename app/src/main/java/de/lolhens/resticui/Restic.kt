@@ -222,6 +222,12 @@ abstract class ResticRepo(
     val restic: Restic,
     private val password: String
 ) {
+    companion object {
+        private val format = Json { ignoreUnknownKeys = true }
+
+        private val filterJson = { line: String -> line.startsWith("{") || line.startsWith("[") }
+    }
+
     protected abstract fun repository(): String
 
     protected open fun hosts(): List<String> = emptyList()
@@ -243,9 +249,6 @@ abstract class ResticRepo(
         ).plus(vars()).plus(vars),
         hosts()
     )
-
-    private val format = Json { ignoreUnknownKeys = true }
-    private val filterJson = { line: String -> line.startsWith("{") || line.startsWith("[") }
 
     fun init(): CompletableFuture<String> =
         restic(listOf("init")).thenApply { (out, _) ->
