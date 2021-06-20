@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_folders"
+        android:icon="@drawable/outline_folder_open_24"
+        android:title="@string/title_folders"/>
+
+    <item
+        android:id="@+id/navigation_repos"
+        android:icon="@drawable/outline_cloud_24"
+        android:title="@string/title_repos"/>
+
+    <item
+        android:id="@+id/navigation_settings"
+        android:icon="@drawable/outline_settings_24"
+        android:title="@string/title_settings"/>
+
+    <item
+        android:id="@+id/navigation_about"
+        android:icon="@drawable/outline_info_24"
+        android:title="@string/title_about"/>
+
+</menu>

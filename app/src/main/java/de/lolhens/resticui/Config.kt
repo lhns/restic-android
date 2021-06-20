@@ -1,6 +1,10 @@
 package de.lolhens.resticui
 
+import android.app.Activity
 import android.content.Context
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.security.crypto.MasterKey
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -19,6 +23,20 @@ class ConfigManager(context: Context) {
     private val mainKey = MasterKey.Builder(context)
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
         .build()
+
+    private fun checkPermission(activity: Activity, permission: String, requestCode: Int): Boolean {
+        if (ContextCompat.checkSelfPermission(
+                activity,
+                permission
+            ) == PackageManager.PERMISSION_DENIED
+        ) {
+            // Requesting the permission
+            ActivityCompat.requestPermissions(activity, arrayOf(permission), requestCode)
+            return false
+        } else {
+            return true
+        }
+    }
 }
 
 data class Config(
