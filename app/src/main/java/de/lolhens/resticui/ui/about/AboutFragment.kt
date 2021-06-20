@@ -7,7 +7,9 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import de.lolhens.resticui.MainActivity
 import de.lolhens.resticui.databinding.FragmentAboutBinding
 
 class AboutFragment : Fragment() {
@@ -24,8 +26,15 @@ class AboutFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        aboutViewModel =
-            ViewModelProvider(this).get(AboutViewModel::class.java)
+        val restic = (activity as MainActivity).restic
+
+        aboutViewModel = ViewModelProvider(this, object : ViewModelProvider.Factory {
+            override fun <T : ViewModel?> create(modelClass: Class<T>): T =
+                if (modelClass.isAssignableFrom(AboutViewModel::class.java))
+                    AboutViewModel(restic) as T
+                else
+                    throw IllegalArgumentException("Unknown ViewModel class")
+        }).get(AboutViewModel::class.java)
 
         _binding = FragmentAboutBinding.inflate(inflater, container, false)
         val root: View = binding.root
@@ -34,6 +43,7 @@ class AboutFragment : Fragment() {
         aboutViewModel.text.observe(viewLifecycleOwner, Observer {
             textView.text = it
         })
+
         return root
     }
 

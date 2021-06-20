@@ -1,11 +1,10 @@
 package de.lolhens.resticui
 
-import android.app.Activity
 import android.content.Context
-import android.content.pm.PackageManager
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.security.crypto.MasterKey
+import de.lolhens.resticui.restic.Restic
+import de.lolhens.resticui.restic.ResticRepo
+import de.lolhens.resticui.restic.ResticRepoS3
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -21,19 +20,7 @@ import java.util.*
 
 class ConfigManager(context: Context) {
     companion object {
-        fun checkPermission(activity: Activity, permission: String, requestCode: Int): Boolean {
-            if (ContextCompat.checkSelfPermission(
-                    activity,
-                    permission
-                ) == PackageManager.PERMISSION_DENIED
-            ) {
-                // Requesting the permission
-                ActivityCompat.requestPermissions(activity, arrayOf(permission), requestCode)
-                return false
-            } else {
-                return true
-            }
-        }
+
     }
 
     private val mainKey = MasterKey.Builder(context)
