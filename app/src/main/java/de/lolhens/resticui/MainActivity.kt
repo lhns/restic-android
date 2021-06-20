@@ -1,6 +1,9 @@
 package de.lolhens.resticui
 
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -44,5 +47,22 @@ class MainActivity : AppCompatActivity() {
         navView.setupWithNavController(navController)
 
         _restic = Restic(ResticStorage.fromContext(applicationContext))
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        getMenuInflater().inflate(R.menu.nav_menu_entry, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val id: Int = item.getItemId()
+        when {
+            id == R.id.action_delete ->
+                Toast.makeText(applicationContext, "Delete", Toast.LENGTH_SHORT).show()
+
+            id == R.id.action_edit ->
+                Toast.makeText(applicationContext, "Edit", Toast.LENGTH_SHORT).show()
+        }
+        return super.onOptionsItemSelected(item)
     }
 }
