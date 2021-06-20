@@ -21,7 +21,7 @@
         android:id="@+id/navigation_settings"
         android:name="de.lolhens.resticui.ui.settings.SettingsFragment"
         android:label="@string/title_settings"
-        tools:layout="@layout/fragment_about" />
+        tools:layout="@layout/fragment_settings" />
 
     <fragment
         android:id="@+id/navigation_about"
