@@ -20,23 +20,25 @@ import java.net.URI
 import java.util.*
 
 class ConfigManager(context: Context) {
+    companion object {
+        fun checkPermission(activity: Activity, permission: String, requestCode: Int): Boolean {
+            if (ContextCompat.checkSelfPermission(
+                    activity,
+                    permission
+                ) == PackageManager.PERMISSION_DENIED
+            ) {
+                // Requesting the permission
+                ActivityCompat.requestPermissions(activity, arrayOf(permission), requestCode)
+                return false
+            } else {
+                return true
+            }
+        }
+    }
+
     private val mainKey = MasterKey.Builder(context)
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
         .build()
-
-    private fun checkPermission(activity: Activity, permission: String, requestCode: Int): Boolean {
-        if (ContextCompat.checkSelfPermission(
-                activity,
-                permission
-            ) == PackageManager.PERMISSION_DENIED
-        ) {
-            // Requesting the permission
-            ActivityCompat.requestPermissions(activity, arrayOf(permission), requestCode)
-            return false
-        } else {
-            return true
-        }
-    }
 }
 
 data class Config(
