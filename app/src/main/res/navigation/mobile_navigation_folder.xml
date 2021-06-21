@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation_folder"
+    app:startDestination="@+id/navigation_folder">
+
+    <fragment
+        android:id="@+id/navigation_folder"
+        android:name="de.lolhens.resticui.ui.folder.FolderFragment"
+        android:label="@string/title_folder"
+        tools:layout="@layout/fragment_folder" />
+</navigation>

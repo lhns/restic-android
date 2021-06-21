@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation_repo"
+    app:startDestination="@+id/navigation_repo">
+
+    <fragment
+        android:id="@+id/navigation_repo"
+        android:name="de.lolhens.resticui.ui.repo.RepoFragment"
+        android:label="@string/title_repo"
+        tools:layout="@layout/fragment_repo" />
+</navigation>

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.repos.ReposFragment">
+    tools:context=".ui.folders.FoldersFragment">
 
     <ListView
         android:id="@+id/list_view_folders"

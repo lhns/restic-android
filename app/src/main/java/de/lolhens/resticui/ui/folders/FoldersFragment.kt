@@ -1,7 +1,7 @@
 package de.lolhens.resticui.ui.folders
 
 import android.Manifest
-import android.R
+import android.content.Intent
 import android.os.Bundle
 import android.os.Environment
 import android.view.LayoutInflater
@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import de.lolhens.resticui.Permissions
 import de.lolhens.resticui.databinding.FragmentFoldersBinding
+import de.lolhens.resticui.ui.folder.FolderActivity
 
 class FoldersFragment : Fragment() {
 
@@ -41,7 +42,7 @@ class FoldersFragment : Fragment() {
 
                     val myArrayAdapter = ArrayAdapter(
                         requireContext(),
-                        R.layout.simple_list_item_1,
+                        android.R.layout.simple_list_item_1,
                         extStorageDir.list()!!
                     )
                     binding.listViewFolders.adapter = myArrayAdapter
@@ -58,9 +59,14 @@ class FoldersFragment : Fragment() {
         binding.listViewFolders.setOnItemClickListener { parent, view, position, id ->
             Toast.makeText(requireContext(), "Clicked item: $position", Toast.LENGTH_SHORT).show()
 
-            /*val intent = Intent(this, NextActivity::class.java)
-            intent.putExtra("position", position)
-            this.startActivity(intent)*/
+            /*val folderFragment = FolderFragment()
+            parentFragmentManager.commit {
+                replace(R.id.nav_host_fragment_activity_main, folderFragment)
+                addToBackStack(null)
+            }*/
+
+            val intent = Intent(requireContext(), FolderActivity::class.java)
+            startActivity(intent)
         }
 
         binding.fabFoldersAdd.setOnClickListener { view ->

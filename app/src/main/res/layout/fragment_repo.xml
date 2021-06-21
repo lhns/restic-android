@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/fragment_folder"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.repos.ReposFragment">
+    android:name="de.lolhens.resticui.ui.repo.RepoFragment"
+    tools:context=".ui.repo.RepoFragment">
 
     <TextView
-        android:id="@+id/text_repos"
+        android:id="@+id/text_repo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -20,13 +22,4 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_repos_add"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
-        android:contentDescription="@string/button_add"
-        app:srcCompat="@drawable/outline_add_24" />
-
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</FrameLayout>
