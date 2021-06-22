@@ -7,9 +7,13 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import de.lolhens.resticui.config.ConfigManager
+import de.lolhens.resticui.config.RepoConfigId
 import de.lolhens.resticui.databinding.ActivityMainBinding
 import de.lolhens.resticui.restic.Restic
 import de.lolhens.resticui.restic.ResticStorage
+import java.io.File
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -42,6 +46,22 @@ class MainActivity : AppCompatActivity() {
             )
         )
         navView.setupWithNavController(navController)
+
+        val configManager = ConfigManager(applicationContext)
+        val config = configManager.readConfig()
+        println(config)
+        configManager.writeConfig(
+            config.copy(
+                directories = listOf(
+                    Pair(
+                        File("test"),
+                        RepoConfigId(UUID.randomUUID())
+                    )
+                )
+            )
+        )
+        println(configManager.readConfig())
+
 
         _restic = Restic(ResticStorage.fromContext(applicationContext))
     }

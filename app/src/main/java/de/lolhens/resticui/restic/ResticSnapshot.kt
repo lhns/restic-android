@@ -1,5 +1,7 @@
 package de.lolhens.resticui.restic
 
+import de.lolhens.resticui.FileSerializer
+import de.lolhens.resticui.ZonedDateTimeSerializer
 import kotlinx.serialization.Serializable
 import java.io.File
 import java.time.ZonedDateTime

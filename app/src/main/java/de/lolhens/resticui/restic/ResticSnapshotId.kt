@@ -15,7 +15,7 @@ data class ResticSnapshotId(val id: String) {
 
 object ResticSnapshotIdSerializer : KSerializer<ResticSnapshotId> {
     override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("SnapshotId", PrimitiveKind.STRING)
+        PrimitiveSerialDescriptor((ResticSnapshotId::class).simpleName!!, PrimitiveKind.STRING)
 
     override fun serialize(encoder: Encoder, value: ResticSnapshotId) =
         encoder.encodeString(value.id)
