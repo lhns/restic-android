@@ -65,4 +65,12 @@ class MainActivity : AppCompatActivity() {
 
         _restic = Restic(ResticStorage.fromContext(applicationContext))
     }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        Permissions.onRequestPermissionsResult(permissions, grantResults)
+    }
 }

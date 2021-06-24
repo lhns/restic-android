@@ -14,24 +14,39 @@ object Permissions {
             permission
         ) == PackageManager.PERMISSION_GRANTED
 
+    private var callbacks: Map<String, CompletableFuture<Boolean>> = emptyMap()
+
+    fun onRequestPermissionsResult(permissions: Array<out String>, grantResults: IntArray) {
+        val permission = permissions[0]
+        val granted =
+            grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
+
+        val callback = callbacks.get(permission)
+        if (callback != null) {
+            synchronized(this) {
+                callbacks = callbacks.minus(permission)
+            }
+
+            callback.complete(granted)
+        }
+    }
+
     fun request(
-        context: Context,
+        activity: Activity,
         permission: String
     ): CompletableFuture<Boolean> =
-        if (granted(context, permission)) {
+        if (granted(activity, permission)) {
             CompletableFuture.completedFuture(true)
         } else {
             // Requesting the permission
             val future = CompletableFuture<Boolean>()
-            ActivityCompat.requestPermissions(object : Activity() {
-                override fun onRequestPermissionsResult(
-                    requestCode: Int,
-                    permissions: Array<out String>,
-                    grantResults: IntArray
-                ) {
-                    future.complete(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                }
-            }, arrayOf(permission), 0)
+
+            synchronized(this) {
+                callbacks = callbacks.plus(Pair(permission, future))
+            }
+
+            ActivityCompat.requestPermissions(activity, arrayOf(permission), 0)
+
             future
         }
 }
