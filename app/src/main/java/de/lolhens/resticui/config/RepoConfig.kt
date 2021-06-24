@@ -29,20 +29,26 @@ object RepoConfigSerializer : KSerializer<RepoConfig> {
     override val descriptor: SerialDescriptor = RepoConfigSurrogate.serializer().descriptor
 
     override fun serialize(encoder: Encoder, value: RepoConfig) {
-        val surrogate =
-            RepoConfigSurrogate(value.base, value.base.type.serializeParams(value.params))
+        val surrogate = RepoConfigSurrogate(
+            value.base,
+            value.base.type.serializeParams(value.params)
+        )
         encoder.encodeSerializableValue(RepoConfigSurrogate.serializer(), surrogate)
     }
 
     override fun deserialize(decoder: Decoder): RepoConfig {
         val surrogate = decoder.decodeSerializableValue(RepoConfigSurrogate.serializer())
-        return RepoConfig(surrogate.base, surrogate.base.type.deserializeParams(surrogate.params))
+        return RepoConfig(
+            surrogate.base,
+            surrogate.base.type.deserializeParams(surrogate.params)
+        )
     }
 }
 
 @Serializable
 data class RepoBaseConfig(
     val id: @Serializable(with = RepoConfigIdSerializer::class) RepoConfigId,
+    val name: String,
     val type: RepoType,
     val password: String
 )

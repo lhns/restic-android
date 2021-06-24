@@ -9,4 +9,5 @@
     <string name="button_add">Add</string>
     <string name="button_delete">Delete</string>
     <string name="button_edit">Edit</string>
+    <string name="button_done">Done</string>
 </resources>

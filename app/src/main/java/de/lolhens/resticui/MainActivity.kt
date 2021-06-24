@@ -7,17 +7,26 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import de.lolhens.resticui.config.Config
 import de.lolhens.resticui.config.ConfigManager
-import de.lolhens.resticui.config.RepoConfigId
 import de.lolhens.resticui.databinding.ActivityMainBinding
 import de.lolhens.resticui.restic.Restic
 import de.lolhens.resticui.restic.ResticStorage
-import java.io.File
-import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+
+    private lateinit var _configManager: ConfigManager
+    private val configManager get() = _configManager
+
+    private lateinit var _config: Config
+    var config: Config
+        get() = _config
+        set(config) {
+            _config = config
+            configManager.writeConfig(config)
+        }
 
     private lateinit var _restic: Restic
 
@@ -47,21 +56,8 @@ class MainActivity : AppCompatActivity() {
         )
         navView.setupWithNavController(navController)
 
-        val configManager = ConfigManager(applicationContext)
-        val config = configManager.readConfig()
-        println(config)
-        configManager.writeConfig(
-            config.copy(
-                directories = listOf(
-                    Pair(
-                        File("test"),
-                        RepoConfigId(UUID.randomUUID())
-                    )
-                )
-            )
-        )
-        println(configManager.readConfig())
-
+        _configManager = ConfigManager(applicationContext)
+        _config = configManager.readConfig()
 
         _restic = Restic(ResticStorage.fromContext(applicationContext))
     }

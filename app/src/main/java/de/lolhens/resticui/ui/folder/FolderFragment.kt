@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import de.lolhens.resticui.databinding.FragmentFolderBinding
+import java.util.concurrent.CompletableFuture
 
 class FolderFragment : Fragment() {
     private lateinit var folderViewModel: FolderViewModel
@@ -30,10 +31,22 @@ class FolderFragment : Fragment() {
 
         setHasOptionsMenu(true)
 
-        val textView: TextView = binding.textFolder
+        val textView: TextView = binding.folderTextFolder
         folderViewModel.text.observe(viewLifecycleOwner, Observer {
             textView.text = it
         })
+
+        val progressBar = binding.folderProgress
+        fun updateProgress(progress: Int) {
+            CompletableFuture.runAsync {
+                Thread.sleep(100)
+                progressBar.setProgress(progress, true)
+                updateProgress(if (progress == 100) 0 else progress + 1)
+            }
+        }
+
+        updateProgress(0)
+
         return root
     }
 

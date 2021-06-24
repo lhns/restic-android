@@ -10,7 +10,9 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import de.lolhens.resticui.MainActivity
 import de.lolhens.resticui.Permissions
 import de.lolhens.resticui.databinding.FragmentFoldersBinding
 import de.lolhens.resticui.ui.folder.FolderActivity
@@ -29,8 +31,15 @@ class FoldersFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        foldersViewModel =
-            ViewModelProvider(this).get(FoldersViewModel::class.java)
+        val mainActivity = (activity as MainActivity)
+
+        foldersViewModel = ViewModelProvider(this, object : ViewModelProvider.Factory {
+            override fun <T : ViewModel?> create(modelClass: Class<T>): T =
+                if (modelClass.isAssignableFrom(FoldersViewModel::class.java))
+                    FoldersViewModel(mainActivity.config, mainActivity.restic) as T
+                else
+                    throw IllegalArgumentException("Unknown ViewModel class")
+        }).get(FoldersViewModel::class.java)
 
         _binding = FragmentFoldersBinding.inflate(inflater, container, false)
         val root: View = binding.root
@@ -40,12 +49,12 @@ class FoldersFragment : Fragment() {
                 if (granted) {
                     val extStorageDir = Environment.getExternalStorageDirectory()
 
-                    val myArrayAdapter = ArrayAdapter(
+                    /*val myArrayAdapter = ArrayAdapter(
                         requireContext(),
                         android.R.layout.simple_list_item_1,
                         extStorageDir.list()!!
                     )
-                    binding.listViewFolders.adapter = myArrayAdapter
+                    binding.listViewFolders.adapter = myArrayAdapter*/
                 } else {
                     Toast.makeText(
                         requireContext(),
@@ -66,16 +75,29 @@ class FoldersFragment : Fragment() {
             }*/
 
             val intent = Intent(requireContext(), FolderActivity::class.java)
+            intent.putExtra("edit", false)
             startActivity(intent)
         }
 
         binding.fabFoldersAdd.setOnClickListener { view ->
             Toast.makeText(requireContext(), "Added folder", Toast.LENGTH_SHORT).show()
+
+            val intent = Intent(requireContext(), FolderActivity::class.java)
+            intent.putExtra("edit", true)
+            startActivity(intent)
         }
 
-        /*foldersViewModel.text.observe(viewLifecycleOwner, Observer {
-            textView = it
-        })*/
+        foldersViewModel.list.observe(viewLifecycleOwner, { directories ->
+            val myArrayAdapter = ArrayAdapter(
+                requireContext(),
+                android.R.layout.simple_list_item_1,
+                directories.map { directory -> "${directory.second.base.name}/${directory.first.path.dropWhile { it == '/' }}" }
+                    .plus("test")
+            )
+
+            binding.listViewFolders.adapter = myArrayAdapter
+        })
+
         return root
     }
 

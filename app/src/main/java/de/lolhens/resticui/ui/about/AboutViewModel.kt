@@ -9,6 +9,7 @@ class AboutViewModel(restic: Restic) : ViewModel() {
     private fun aboutText(resticVersion: String? = null) = """
             Restic UI
             by LolHens
+            https://github.com/LolHens/restic-android
             
             ${resticVersion ?: ""}
             

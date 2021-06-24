@@ -2,16 +2,12 @@ package de.lolhens.resticui.ui.repo
 
 import android.os.Bundle
 import android.view.*
-import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
-import de.lolhens.resticui.databinding.FragmentRepoBinding
+import de.lolhens.resticui.databinding.FragmentRepoEditBinding
 
-class RepoFragment : Fragment() {
-    private lateinit var repoViewModel: RepoViewModel
-    private var _binding: FragmentRepoBinding? = null
+class RepoEditFragment : Fragment() {
+    private var _binding: FragmentRepoEditBinding? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -22,24 +18,17 @@ class RepoFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        repoViewModel =
-            ViewModelProvider(this).get(RepoViewModel::class.java)
-
-        _binding = FragmentRepoBinding.inflate(inflater, container, false)
+        _binding = FragmentRepoEditBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
         setHasOptionsMenu(true)
 
-        val textView: TextView = binding.repoTextRepo
-        repoViewModel.text.observe(viewLifecycleOwner, Observer {
-            textView.text = it
-        })
         return root
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(de.lolhens.resticui.R.menu.nav_menu_entry, menu)
+        inflater.inflate(de.lolhens.resticui.R.menu.nav_menu_entry_edit, menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

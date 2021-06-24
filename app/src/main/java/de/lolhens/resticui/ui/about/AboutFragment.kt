@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import de.lolhens.resticui.MainActivity
@@ -40,7 +39,7 @@ class AboutFragment : Fragment() {
         val root: View = binding.root
 
         val textView: TextView = binding.textAbout
-        aboutViewModel.text.observe(viewLifecycleOwner, Observer {
+        aboutViewModel.text.observe(viewLifecycleOwner, {
             textView.text = it
         })
 

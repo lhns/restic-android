@@ -10,4 +10,10 @@
         android:name="de.lolhens.resticui.ui.repo.RepoFragment"
         android:label="@string/title_repo"
         tools:layout="@layout/fragment_repo" />
+
+    <fragment
+        android:id="@+id/navigation_repo_edit"
+        android:name="de.lolhens.resticui.ui.repo.RepoEditFragment"
+        android:label="@string/title_repo"
+        tools:layout="@layout/fragment_repo_edit" />
 </navigation>
