@@ -5,6 +5,7 @@ import android.view.*
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import de.lolhens.resticui.R
 import de.lolhens.resticui.databinding.FragmentFolderEditBinding
 
 class FolderEditFragment : Fragment() {
@@ -31,18 +32,17 @@ class FolderEditFragment : Fragment() {
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(de.lolhens.resticui.R.menu.nav_menu_entry_edit, menu)
+        inflater.inflate(R.menu.nav_menu_entry_edit, menu)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val id: Int = item.getItemId()
-        val context = requireContext()
-        when {
-            id == de.lolhens.resticui.R.id.action_done ->
+    override fun onOptionsItemSelected(item: MenuItem): Boolean =
+        when (item.getItemId()) {
+            R.id.action_done -> {
                 Toast.makeText(context, "Done", Toast.LENGTH_SHORT).show()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
-        return super.onOptionsItemSelected(item)
-    }
 
     override fun onDestroyView() {
         super.onDestroyView()

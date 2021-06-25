@@ -25,7 +25,7 @@ class AboutFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val restic = (activity as MainActivity).restic
+        val restic = MainActivity.instance.restic
 
         aboutViewModel = ViewModelProvider(this, object : ViewModelProvider.Factory {
             override fun <T : ViewModel?> create(modelClass: Class<T>): T =
@@ -39,9 +39,9 @@ class AboutFragment : Fragment() {
         val root: View = binding.root
 
         val textView: TextView = binding.textAbout
-        aboutViewModel.text.observe(viewLifecycleOwner, {
+        aboutViewModel.text.observe(viewLifecycleOwner) {
             textView.text = it
-        })
+        }
 
         return root
     }

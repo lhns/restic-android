@@ -24,15 +24,14 @@ class FolderActivity : AppCompatActivity() {
         }
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.getItemId()) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean =
+        when (item.getItemId()) {
             android.R.id.home -> {
                 finish()
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
-    }
 
     override fun onBackPressed() {
         finish()

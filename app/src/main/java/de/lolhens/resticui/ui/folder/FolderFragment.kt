@@ -5,8 +5,8 @@ import android.view.*
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import de.lolhens.resticui.R
 import de.lolhens.resticui.databinding.FragmentFolderBinding
 import java.util.concurrent.CompletableFuture
 
@@ -32,9 +32,9 @@ class FolderFragment : Fragment() {
         setHasOptionsMenu(true)
 
         val textView: TextView = binding.folderTextFolder
-        folderViewModel.text.observe(viewLifecycleOwner, Observer {
+        folderViewModel.text.observe(viewLifecycleOwner) {
             textView.text = it
-        })
+        }
 
         val progressBar = binding.folderProgress
         fun updateProgress(progress: Int) {
@@ -55,18 +55,18 @@ class FolderFragment : Fragment() {
         inflater.inflate(de.lolhens.resticui.R.menu.nav_menu_entry, menu)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val id: Int = item.getItemId()
-        val context = requireContext()
-        when {
-            id == de.lolhens.resticui.R.id.action_delete ->
+    override fun onOptionsItemSelected(item: MenuItem): Boolean =
+        when (item.getItemId()) {
+            R.id.action_delete -> {
                 Toast.makeText(context, "Delete", Toast.LENGTH_SHORT).show()
-
-            id == de.lolhens.resticui.R.id.action_edit ->
+                true
+            }
+            R.id.action_edit -> {
                 Toast.makeText(context, "Edit", Toast.LENGTH_SHORT).show()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
-        return super.onOptionsItemSelected(item)
-    }
 
     override fun onDestroyView() {
         super.onDestroyView()

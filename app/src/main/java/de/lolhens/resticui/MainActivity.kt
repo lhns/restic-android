@@ -2,6 +2,7 @@ package de.lolhens.resticui
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.MutableLiveData
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
@@ -14,19 +15,19 @@ import de.lolhens.resticui.restic.Restic
 import de.lolhens.resticui.restic.ResticStorage
 
 class MainActivity : AppCompatActivity() {
+    companion object {
+        private lateinit var _instance: MainActivity
+
+        val instance: MainActivity get() = _instance
+    }
 
     private lateinit var binding: ActivityMainBinding
 
     private lateinit var _configManager: ConfigManager
     private val configManager get() = _configManager
 
-    private lateinit var _config: Config
-    var config: Config
-        get() = _config
-        set(config) {
-            _config = config
-            configManager.writeConfig(config)
-        }
+    private lateinit var _config: MutableLiveData<Config>
+    val config: MutableLiveData<Config> get() = _config
 
     private lateinit var _restic: Restic
 
@@ -34,6 +35,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        _instance = this
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -57,9 +60,17 @@ class MainActivity : AppCompatActivity() {
         navView.setupWithNavController(navController)
 
         _configManager = ConfigManager(applicationContext)
-        _config = configManager.readConfig()
+        _config = MutableLiveData(configManager.readConfig())
+
+        config.observe(this) { config ->
+            configManager.writeConfig(config)
+        }
 
         _restic = Restic(ResticStorage.fromContext(applicationContext))
+    }
+
+    fun configure(f: (Config) -> Config) {
+        config.postValue(f(config.value!!))
     }
 
     override fun onRequestPermissionsResult(

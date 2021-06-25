@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="repo_types">
+        <item>S3</item>
+    </string-array>
+</resources>

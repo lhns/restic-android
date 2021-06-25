@@ -13,6 +13,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonObject
 import java.net.URI
+import java.util.*
 
 data class RepoConfig(
     val base: RepoBaseConfig,
@@ -51,7 +52,21 @@ data class RepoBaseConfig(
     val name: String,
     val type: RepoType,
     val password: String
-)
+) {
+    companion object {
+        fun create(
+            name: String,
+            type: RepoType,
+            password: String
+        ): RepoBaseConfig =
+            RepoBaseConfig(
+                RepoConfigId(UUID.randomUUID()),
+                name,
+                type,
+                password
+            )
+    }
+}
 
 enum class RepoType(type: String) {
     S3("s3") {

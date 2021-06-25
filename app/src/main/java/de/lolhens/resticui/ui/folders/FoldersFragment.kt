@@ -31,12 +31,12 @@ class FoldersFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val mainActivity = (activity as MainActivity)
+        val mainActivity = MainActivity.instance
 
         foldersViewModel = ViewModelProvider(this, object : ViewModelProvider.Factory {
             override fun <T : ViewModel?> create(modelClass: Class<T>): T =
                 if (modelClass.isAssignableFrom(FoldersViewModel::class.java))
-                    FoldersViewModel(mainActivity.config, mainActivity.restic) as T
+                    FoldersViewModel(mainActivity.config.value!!, mainActivity.restic) as T
                 else
                     throw IllegalArgumentException("Unknown ViewModel class")
         }).get(FoldersViewModel::class.java)
@@ -76,7 +76,7 @@ class FoldersFragment : Fragment() {
 
             val intent = Intent(requireContext(), FolderActivity::class.java)
             intent.putExtra("edit", false)
-            startActivity(intent)
+            startActivityForResult(intent, 0)
         }
 
         binding.fabFoldersAdd.setOnClickListener { view ->
@@ -84,10 +84,10 @@ class FoldersFragment : Fragment() {
 
             val intent = Intent(requireContext(), FolderActivity::class.java)
             intent.putExtra("edit", true)
-            startActivity(intent)
+            startActivityForResult(intent, 0)
         }
 
-        foldersViewModel.list.observe(viewLifecycleOwner, { directories ->
+        foldersViewModel.list.observe(viewLifecycleOwner) { directories ->
             val myArrayAdapter = ArrayAdapter(
                 requireContext(),
                 android.R.layout.simple_list_item_1,
@@ -96,7 +96,7 @@ class FoldersFragment : Fragment() {
             )
 
             binding.listViewFolders.adapter = myArrayAdapter
-        })
+        }
 
         return root
     }
