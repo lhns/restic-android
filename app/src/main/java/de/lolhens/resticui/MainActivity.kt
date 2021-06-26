@@ -2,7 +2,9 @@ package de.lolhens.resticui
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.observe
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
@@ -13,6 +15,7 @@ import de.lolhens.resticui.config.ConfigManager
 import de.lolhens.resticui.databinding.ActivityMainBinding
 import de.lolhens.resticui.restic.Restic
 import de.lolhens.resticui.restic.ResticStorage
+import java.util.concurrent.CompletableFuture
 
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -26,8 +29,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var _configManager: ConfigManager
     private val configManager get() = _configManager
 
-    private lateinit var _config: MutableLiveData<Config>
-    val config: MutableLiveData<Config> get() = _config
+    private val _config: MutableLiveData<Pair<Config, Runnable>> = MutableLiveData()
 
     private lateinit var _restic: Restic
 
@@ -60,17 +62,27 @@ class MainActivity : AppCompatActivity() {
         navView.setupWithNavController(navController)
 
         _configManager = ConfigManager(applicationContext)
-        _config = MutableLiveData(configManager.readConfig())
-
-        config.observe(this) { config ->
+        _config.value = Pair(configManager.readConfig(), Runnable { })
+        _config.observe(this) { (config, callback) ->
             configManager.writeConfig(config)
+            callback.run()
         }
 
         _restic = Restic(ResticStorage.fromContext(applicationContext))
     }
 
-    fun configure(f: (Config) -> Config) {
-        config.postValue(f(config.value!!))
+    val config: Config get() = _config.value!!.first
+
+    fun observeConfig(lifecycleOwner: LifecycleOwner, f: (Config) -> Unit) {
+        _config.observe(lifecycleOwner) { (config, _) -> f(config) }
+    }
+
+    fun configure(f: (Config) -> Config): CompletableFuture<Unit> {
+        val callback = CompletableFuture<Unit>()
+        _config.postValue(Pair(f(config), Runnable {
+            callback.complete(null)
+        }))
+        return callback
     }
 
     override fun onRequestPermissionsResult(

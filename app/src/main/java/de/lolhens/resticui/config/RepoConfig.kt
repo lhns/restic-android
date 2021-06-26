@@ -18,7 +18,9 @@ import java.util.*
 data class RepoConfig(
     val base: RepoBaseConfig,
     val params: RepoParams
-)
+) {
+    fun repo(restic: Restic): ResticRepo = params.repo(base, restic)
+}
 
 object RepoConfigSerializer : KSerializer<RepoConfig> {
     @Serializable
@@ -84,7 +86,7 @@ enum class RepoType(type: String) {
 }
 
 abstract class RepoParams {
-    abstract fun repo(baseConfig: RepoBaseConfig, restic: Restic): ResticRepo
+    internal abstract fun repo(baseConfig: RepoBaseConfig, restic: Restic): ResticRepo
 }
 
 @Serializable

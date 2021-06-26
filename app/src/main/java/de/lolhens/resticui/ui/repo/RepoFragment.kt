@@ -1,54 +1,85 @@
 package de.lolhens.resticui.ui.repo
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.view.*
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import de.lolhens.resticui.MainActivity
+import de.lolhens.resticui.R
+import de.lolhens.resticui.config.RepoConfigId
 import de.lolhens.resticui.databinding.FragmentRepoBinding
+import java.time.format.DateTimeFormatter
+
 
 class RepoFragment : Fragment() {
-    private lateinit var repoViewModel: RepoViewModel
     private var _binding: FragmentRepoBinding? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
 
+    private lateinit var _repoId: RepoConfigId
+    private val repoId: RepoConfigId get() = _repoId
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        repoViewModel =
-            ViewModelProvider(this).get(RepoViewModel::class.java)
-
         _binding = FragmentRepoBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
         setHasOptionsMenu(true)
 
-        val textView: TextView = binding.repoTextRepo
-        repoViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
+        _repoId = (requireActivity() as RepoActivity).repoId
+        val repo = MainActivity.instance.config.repos.find { it.base.id == repoId }!!
+
+        binding.textRepoName.setText(repo.base.name)
+
+        val resticRepo = repo.repo(MainActivity.instance.restic)
+        binding.textRepoUrl.setText(resticRepo.repository())
+
+        resticRepo.snapshots().thenAccept { snapshots ->
+            requireActivity().runOnUiThread {
+                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                binding.listRepoSnapshots.adapter = ArrayAdapter(
+                    requireContext(),
+                    android.R.layout.simple_list_item_1,
+                    snapshots.map { "${it.time.format(formatter)} ${it.id.short}\n${it.hostname} ${it.paths[0]}" }
+                )
+            }
         }
+
         return root
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(de.lolhens.resticui.R.menu.nav_menu_entry, menu)
+        inflater.inflate(R.menu.nav_menu_entry, menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean =
         when (item.getItemId()) {
-            de.lolhens.resticui.R.id.action_delete -> {
-                Toast.makeText(context, "Delete", Toast.LENGTH_SHORT).show()
+            R.id.action_delete -> {
+                AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.alert_delete_repo_title)
+                    .setMessage(R.string.alert_delete_repo_message)
+                    .setPositiveButton(android.R.string.ok) { dialog, buttonId ->
+                        MainActivity.instance.configure { config ->
+                            config.copy(repos = config.repos.filterNot { it.base.id == repoId })
+                        }
+
+                        requireActivity().finish()
+                    }
+                    .setNegativeButton(android.R.string.cancel) { _, _ -> }
+                    .show()
                 true
             }
-            de.lolhens.resticui.R.id.action_edit -> {
-                Toast.makeText(context, "Edit", Toast.LENGTH_SHORT).show()
+            R.id.action_edit -> {
+                RepoActivity.start(this, true, repoId)
+
+                requireActivity().finish()
                 true
             }
             else -> super.onOptionsItemSelected(item)

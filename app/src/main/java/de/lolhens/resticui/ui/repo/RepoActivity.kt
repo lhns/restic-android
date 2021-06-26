@@ -1,8 +1,10 @@
 package de.lolhens.resticui.ui.repo
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import de.lolhens.resticui.R
 import de.lolhens.resticui.config.RepoConfigId
@@ -10,6 +12,15 @@ import de.lolhens.resticui.databinding.ActivityRepoBinding
 import java.util.*
 
 class RepoActivity : AppCompatActivity() {
+    companion object {
+        fun start(fragment: Fragment, edit: Boolean, id: RepoConfigId) {
+            val intent = Intent(fragment.requireContext(), RepoActivity::class.java)
+            intent.putExtra("edit", edit)
+            intent.putExtra("id", id.toString())
+            fragment.startActivity(intent)
+        }
+    }
+
     private lateinit var _repoId: RepoConfigId
     val repoId: RepoConfigId get() = _repoId
 

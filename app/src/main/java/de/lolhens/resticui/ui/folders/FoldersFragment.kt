@@ -36,7 +36,7 @@ class FoldersFragment : Fragment() {
         foldersViewModel = ViewModelProvider(this, object : ViewModelProvider.Factory {
             override fun <T : ViewModel?> create(modelClass: Class<T>): T =
                 if (modelClass.isAssignableFrom(FoldersViewModel::class.java))
-                    FoldersViewModel(mainActivity.config.value!!, mainActivity.restic) as T
+                    FoldersViewModel(mainActivity.config, mainActivity.restic) as T
                 else
                     throw IllegalArgumentException("Unknown ViewModel class")
         }).get(FoldersViewModel::class.java)
@@ -65,14 +65,8 @@ class FoldersFragment : Fragment() {
                 }
             }
 
-        binding.listViewFolders.setOnItemClickListener { parent, view, position, id ->
+        binding.listFolders.setOnItemClickListener { parent, view, position, id ->
             Toast.makeText(requireContext(), "Clicked item: $position", Toast.LENGTH_SHORT).show()
-
-            /*val folderFragment = FolderFragment()
-            parentFragmentManager.commit {
-                replace(R.id.nav_host_fragment_activity_main, folderFragment)
-                addToBackStack(null)
-            }*/
 
             val intent = Intent(requireContext(), FolderActivity::class.java)
             intent.putExtra("edit", false)
@@ -88,14 +82,12 @@ class FoldersFragment : Fragment() {
         }
 
         foldersViewModel.list.observe(viewLifecycleOwner) { directories ->
-            val myArrayAdapter = ArrayAdapter(
+            binding.listFolders.adapter = ArrayAdapter(
                 requireContext(),
                 android.R.layout.simple_list_item_1,
                 directories.map { directory -> "${directory.second.base.name}/${directory.first.path.dropWhile { it == '/' }}" }
                     .plus("test")
             )
-
-            binding.listViewFolders.adapter = myArrayAdapter
         }
 
         return root

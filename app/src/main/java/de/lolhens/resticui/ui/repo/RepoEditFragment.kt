@@ -1,7 +1,9 @@
 package de.lolhens.resticui.ui.repo
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.view.*
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import de.lolhens.resticui.MainActivity
 import de.lolhens.resticui.R
@@ -16,8 +18,8 @@ class RepoEditFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
-    private var _repoId: RepoConfigId? = null
-    private val repoId: RepoConfigId? get() = _repoId
+    private lateinit var _repoId: RepoConfigId
+    private val repoId: RepoConfigId get() = _repoId
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -29,11 +31,8 @@ class RepoEditFragment : Fragment() {
 
         setHasOptionsMenu(true)
 
-        val repoActivity = requireActivity() as RepoActivity
-        _repoId = repoActivity.repoId
-        val repo =
-            if (repoId == null) null
-            else MainActivity.instance.config.value?.repos?.find { it.base.id == repoId }
+        _repoId = (requireActivity() as RepoActivity).repoId
+        val repo = MainActivity.instance.config.repos.find { it.base.id == repoId }
 
         if (repo != null) {
             binding.editRepoName.setText(repo.base.name)
@@ -66,7 +65,8 @@ class RepoEditFragment : Fragment() {
                     s3UrlString.length > 0
                 ) {
                     val repo = RepoConfig(
-                        RepoBaseConfig.create(
+                        RepoBaseConfig(
+                            repoId,
                             repoName,
                             RepoType.S3,
                             repoPassword
@@ -78,15 +78,57 @@ class RepoEditFragment : Fragment() {
                         )
                     )
 
-                    MainActivity.instance.configure { config ->
-                        config.copy(repos = config.repos.filterNot { it.base.id == repoId }
-                            .plus(repo))
+                    fun saveRepo() {
+                        MainActivity.instance.configure { config ->
+                            config.copy(repos = config.repos.filterNot { it.base.id == repoId }
+                                .plus(repo))
+                        }
+
+                        RepoActivity.start(this, false, repoId)
+
+                        requireActivity().finish()
                     }
 
-                    requireActivity().finish()
+                    Toast.makeText(context, R.string.toast_saving, Toast.LENGTH_SHORT).show()
+
+                    val resticRepo = repo.repo(MainActivity.instance.restic)
+                    resticRepo.snapshots().handle { _, throwable ->
+                        if (throwable == null) {
+                            saveRepo()
+                        } else {
+                            throwable.printStackTrace()
+                            requireActivity().runOnUiThread {
+                                AlertDialog.Builder(requireActivity())
+                                    .setTitle(R.string.alert_init_repo_title)
+                                    .setMessage(R.string.alert_init_repo_message)
+                                    .setPositiveButton(android.R.string.ok) { dialog, buttonId ->
+                                        resticRepo.init().handle { _, throwable ->
+                                            if (throwable == null) {
+                                                saveRepo()
+                                            } else {
+                                                requireActivity().runOnUiThread {
+                                                    AlertDialog.Builder(requireActivity())
+                                                        .setTitle(R.string.alert_save_repo_title)
+                                                        .setMessage(R.string.alert_save_repo_message)
+                                                        .setPositiveButton(android.R.string.ok) { dialog, buttonId ->
+                                                            saveRepo()
+                                                        }
+                                                        .setNegativeButton(android.R.string.cancel) { _, _ -> }
+                                                        .show()
+                                                }
+                                            }
+                                        }
+                                    }
+                                    .setNegativeButton(android.R.string.cancel) { _, _ -> }
+                                    .show()
+                            }
+                        }
+                    }
+
                     true
-                } else
+                } else {
                     false
+                }
             }
             else -> super.onOptionsItemSelected(item)
         }

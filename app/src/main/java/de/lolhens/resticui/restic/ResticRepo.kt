@@ -15,7 +15,7 @@ abstract class ResticRepo(
         private val filterJson = { line: String -> line.startsWith("{") || line.startsWith("[") }
     }
 
-    protected abstract fun repository(): String
+    abstract fun repository(): String
 
     protected open fun hosts(): List<String> = emptyList()
 

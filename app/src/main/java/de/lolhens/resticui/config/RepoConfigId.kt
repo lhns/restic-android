@@ -8,7 +8,15 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import java.util.*
 
-data class RepoConfigId(val uuid: UUID)
+data class RepoConfigId(val uuid: UUID) {
+    companion object {
+        fun create(): RepoConfigId = RepoConfigId(UUID.randomUUID())
+
+        fun fromString(string: String): RepoConfigId = RepoConfigId(UUID.fromString(string))
+    }
+
+    override fun toString(): String = uuid.toString()
+}
 
 object RepoConfigIdSerializer : KSerializer<RepoConfigId> {
     override val descriptor: SerialDescriptor =
