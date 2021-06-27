@@ -30,7 +30,7 @@ class FoldersFragment : Fragment() {
             binding.listFolders.adapter = ArrayAdapter(
                 requireContext(),
                 android.R.layout.simple_list_item_1,
-                config.folders.map { "${it.second.base.name} ${it.first.path.path}" }
+                config.folders.map { "${it.repo(config)?.base?.name} ${it.path.path}" }
             )
         }
 
@@ -40,7 +40,7 @@ class FoldersFragment : Fragment() {
 
         binding.listFolders.setOnItemClickListener { parent, view, position, id ->
             val folder = MainActivity.instance.config.folders.get(position)
-            FolderActivity.start(this, false, folder.first.id)
+            FolderActivity.start(this, false, folder.id)
         }
 
         return root

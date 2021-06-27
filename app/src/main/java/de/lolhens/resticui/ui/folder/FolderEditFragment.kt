@@ -36,7 +36,9 @@ class FolderEditFragment : Fragment() {
         setHasOptionsMenu(true)
 
         _folderId = (requireActivity() as FolderActivity).folderId
-        val folder = MainActivity.instance.config.folders.find { it.first.id == folderId }
+        val config = MainActivity.instance.config
+        val folder = config.folders.find { it.id == folderId }
+        val folderRepo = folder?.repo(config)
 
         binding.spinnerRepo.adapter = ArrayAdapter(
             requireContext(),
@@ -60,10 +62,10 @@ class FolderEditFragment : Fragment() {
 
         }
 
-        if (folder != null) {
-            binding.spinnerRepo.setSelection(MainActivity.instance.config.repos.indexOfFirst { it.base.id == folder.second.base.id })
-            binding.editFolder.setText(folder.first.path.path)
-            binding.spinnerSchedule.setSelection(schedules.indexOfFirst { it == folder.first.schedule })
+        if (folder != null && folderRepo != null) {
+            binding.spinnerRepo.setSelection(MainActivity.instance.config.repos.indexOfFirst { it.base.id == folderRepo.base.id })
+            binding.editFolder.setText(folder.path.path)
+            binding.spinnerSchedule.setSelection(schedules.indexOfFirst { it == folder.schedule })
         }
 
         return root
@@ -105,17 +107,15 @@ class FolderEditFragment : Fragment() {
                     repo != null &&
                     path.length > 0
                 ) {
-                    val folder = Pair(
-                        FolderConfig(
-                            folderId,
-                            File(path),
-                            schedule
-                        ),
-                        repo
+                    val folder = FolderConfig(
+                        folderId,
+                        repo.base.id,
+                        File(path),
+                        schedule
                     )
 
                     MainActivity.instance.configure { config ->
-                        config.copy(folders = config.folders.filterNot { it.first.id == folderId }
+                        config.copy(folders = config.folders.filterNot { it.id == folderId }
                             .plus(folder))
                     }
 

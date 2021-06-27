@@ -3,17 +3,19 @@ package de.lolhens.resticui.ui.folder
 import android.app.AlertDialog
 import android.os.Bundle
 import android.view.*
-import android.widget.TextView
+import android.view.View.GONE
+import android.view.View.VISIBLE
+import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
 import de.lolhens.resticui.MainActivity
 import de.lolhens.resticui.R
 import de.lolhens.resticui.config.FolderConfigId
 import de.lolhens.resticui.databinding.FragmentFolderBinding
-import java.util.concurrent.CompletableFuture
+import java.time.format.DateTimeFormatter
+import java.util.concurrent.CompletionException
+import kotlin.math.roundToInt
 
 class FolderFragment : Fragment() {
-    private lateinit var folderViewModel: FolderViewModel
     private var _binding: FragmentFolderBinding? = null
 
     // This property is only valid between onCreateView and
@@ -28,32 +30,77 @@ class FolderFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        folderViewModel =
-            ViewModelProvider(this).get(FolderViewModel::class.java)
-
         _binding = FragmentFolderBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
         setHasOptionsMenu(true)
 
         _folderId = (requireActivity() as FolderActivity).folderId
-        val folder = MainActivity.instance.config.folders.find { it.first.id == folderId }
+        val config = MainActivity.instance.config
+        val folder = config.folders.find { it.id == folderId }!!
+        val folderRepo = folder.repo(config)
 
-        val textView: TextView = binding.folderTextFolder
-        folderViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
-        }
+        if (folderRepo != null) {
+            binding.textRepo.setText(folderRepo.base.name)
+            binding.textFolder.setText(folder.path.path)
+            binding.textSchedule.setText(folder.schedule)
 
-        val progressBar = binding.folderProgress
-        fun updateProgress(progress: Int) {
-            CompletableFuture.runAsync {
-                Thread.sleep(100)
-                progressBar.setProgress(progress, true)
-                updateProgress(if (progress == 100) 0 else progress + 1)
+            val resticRepo = folderRepo.repo(MainActivity.instance.restic)
+
+            resticRepo.snapshots().handle { snapshots, throwable ->
+                requireActivity().runOnUiThread {
+                    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+
+                    binding.progressFolderSnapshots.visibility = View.GONE
+
+                    if (throwable == null) {
+                        val snapshots = snapshots.filter { it.paths.contains(folder.path) }
+
+                        binding.listFolderSnapshots.adapter = ArrayAdapter(
+                            requireContext(),
+                            android.R.layout.simple_list_item_1,
+                            snapshots.map { "${it.time.format(formatter)} ${it.id.short}\n${it.hostname} ${it.paths[0]}" }
+                        )
+                    } else {
+                        val throwable =
+                            if (throwable is CompletionException && throwable.cause != null) throwable.cause!!
+                            else throwable
+
+                        binding.textError.setText(throwable.message)
+                        binding.textError.visibility = View.VISIBLE
+                    }
+                }
+            }
+
+            binding.buttonBackup.setOnClickListener { view ->
+                binding.buttonBackup.isEnabled = false
+                binding.progressBackupDetails.visibility = VISIBLE
+
+                resticRepo.backup(folder.path) { progress ->
+                    requireActivity().runOnUiThread {
+                        binding.progressBackupDetails.visibility = GONE
+
+                        binding.progressBackup.setProgress(progress.percent_done.roundToInt(), true)
+
+                        val details = """
+                            ${progress.percentDoneString()} done / ${progress.seconds_elapsed} seconds elapsed
+                            ${progress.files_done}${if (progress.total_files != null) " / ${progress.total_files}" else ""} Files
+                            ${progress.bytesDoneString()}${if (progress.total_bytes != null) " / ${progress.totalBytesString()}" else ""}
+                        """.trimIndent()
+                        binding.textBackupDetails.setText(details)
+                    }
+                }.handle { summary, throwable ->
+                    requireActivity().runOnUiThread {
+                        binding.buttonBackup.isEnabled = true
+                    }
+
+                    if (throwable != null) {
+                        throwable.printStackTrace()
+                        throw throwable
+                    }
+                }
             }
         }
-
-        updateProgress(0)
 
         return root
     }
@@ -71,7 +118,7 @@ class FolderFragment : Fragment() {
                     .setMessage(R.string.alert_delete_folder_message)
                     .setPositiveButton(android.R.string.ok) { dialog, buttonId ->
                         MainActivity.instance.configure { config ->
-                            config.copy(folders = config.folders.filterNot { it.first.id == folderId })
+                            config.copy(folders = config.folders.filterNot { it.id == folderId })
                         }
 
                         requireActivity().finish()

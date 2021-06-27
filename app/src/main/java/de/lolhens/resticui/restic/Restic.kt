@@ -35,6 +35,7 @@ class Restic(
 
     private fun vars(): List<Pair<String, String>> = listOf(
         Pair("PATH", "/system/bin"),
+        Pair("TMPDIR", storage.cache().absolutePath),
         Pair("LD_LIBRARY_PATH", storage.lib().absolutePath),
         Pair("PROOT_LOADER", loader.absolutePath),
         Pair("PROOT_LOADER_32", loader32.absolutePath),

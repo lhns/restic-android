@@ -41,6 +41,7 @@ class RepoFragment : Fragment() {
         binding.textRepoName.setText(repo.base.name)
 
         val resticRepo = repo.repo(MainActivity.instance.restic)
+
         binding.textRepoUrl.setText(resticRepo.repository())
 
         resticRepo.snapshots().handle { snapshots, throwable ->

@@ -89,7 +89,7 @@ class RepoEditFragment : Fragment() {
                         requireActivity().finish()
                     }
 
-                    Toast.makeText(context, R.string.toast_saving, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, R.string.text_saving, Toast.LENGTH_SHORT).show()
 
                     val resticRepo = repo.repo(MainActivity.instance.restic)
                     resticRepo.stats().handle { _, throwable ->

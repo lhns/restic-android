@@ -6,42 +6,49 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import de.lolhens.resticui.MainActivity
 import de.lolhens.resticui.databinding.FragmentAboutBinding
 
 class AboutFragment : Fragment() {
-
-    private lateinit var aboutViewModel: AboutViewModel
     private var _binding: FragmentAboutBinding? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
 
+    private fun aboutText(resticVersion: String? = null) = """
+            Restic UI
+            by LolHens
+            https://github.com/LolHens/restic-android
+            
+            ${resticVersion ?: ""}
+            
+            https://github.com/restic/restic
+            https://github.com/termux/proot
+        """.trimIndent()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val restic = MainActivity.instance.restic
-
-        aboutViewModel = ViewModelProvider(this, object : ViewModelProvider.Factory {
-            override fun <T : ViewModel?> create(modelClass: Class<T>): T =
-                if (modelClass.isAssignableFrom(AboutViewModel::class.java))
-                    AboutViewModel(restic) as T
-                else
-                    throw IllegalArgumentException("Unknown ViewModel class")
-        }).get(AboutViewModel::class.java)
-
         _binding = FragmentAboutBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
+        val restic = MainActivity.instance.restic
+
         val textView: TextView = binding.textAbout
-        aboutViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
-        }
+        textView.setText(aboutText())
+        restic.version()
+            .thenAccept { resticVersion ->
+                requireActivity().runOnUiThread {
+                    textView.setText(aboutText(resticVersion))
+                }
+            }
+            .exceptionally {
+                it.printStackTrace()
+                null
+            }
 
         return root
     }

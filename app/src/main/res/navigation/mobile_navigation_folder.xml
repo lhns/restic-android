@@ -8,12 +8,12 @@
     <fragment
         android:id="@+id/navigation_folder"
         android:name="de.lolhens.resticui.ui.folder.FolderFragment"
-        android:label="@string/title_folder"
+        android:label="@string/text_folder"
         tools:layout="@layout/fragment_folder" />
 
     <fragment
         android:id="@+id/navigation_folder_edit"
         android:name="de.lolhens.resticui.ui.folder.FolderEditFragment"
-        android:label="@string/title_folder"
+        android:label="@string/text_folder"
         tools:layout="@layout/fragment_folder_edit" />
 </navigation>

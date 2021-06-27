@@ -25,10 +25,10 @@
         </activity>
         <activity
             android:name=".ui.folder.FolderActivity"
-            android:label="@string/title_folder" />
+            android:label="@string/text_folder" />
         <activity
             android:name=".ui.repo.RepoActivity"
-            android:label="@string/title_repo" />
+            android:label="@string/text_repository" />
     </application>
 
 </manifest>
