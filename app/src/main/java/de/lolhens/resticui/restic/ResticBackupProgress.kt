@@ -26,4 +26,7 @@ data class ResticBackupProgress(
 
     fun totalBytesString() = formatBytes(total_bytes)
     fun bytesDoneString() = formatBytes(bytes_done)
+
+    fun timeElapsedString() =
+        "${seconds_elapsed / 60}:${"0${seconds_elapsed % 60}".takeLast(2)}"
 }

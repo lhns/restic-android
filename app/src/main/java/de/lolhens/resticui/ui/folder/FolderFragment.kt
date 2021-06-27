@@ -83,7 +83,7 @@ class FolderFragment : Fragment() {
                         binding.progressBackup.setProgress(progress.percent_done.roundToInt(), true)
 
                         val details = """
-                            ${progress.percentDoneString()} done / ${progress.seconds_elapsed} seconds elapsed
+                            ${progress.percentDoneString()} done / ${progress.timeElapsedString()} elapsed
                             ${progress.files_done}${if (progress.total_files != null) " / ${progress.total_files}" else ""} Files
                             ${progress.bytesDoneString()}${if (progress.total_bytes != null) " / ${progress.totalBytesString()}" else ""}
                         """.trimIndent()
