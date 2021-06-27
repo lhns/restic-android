@@ -9,7 +9,6 @@ import androidx.navigation.findNavController
 import de.lolhens.resticui.R
 import de.lolhens.resticui.config.RepoConfigId
 import de.lolhens.resticui.databinding.ActivityRepoBinding
-import java.util.*
 
 class RepoActivity : AppCompatActivity() {
     companion object {
@@ -33,7 +32,7 @@ class RepoActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val edit = intent.extras!!.getBoolean("edit")
-        _repoId = RepoConfigId(UUID.fromString(intent.extras!!.getString("id")))
+        _repoId = RepoConfigId.fromString(intent.extras!!.getString("id")!!)
 
         if (edit) {
             val navController = findNavController(R.id.nav_host_fragment_activity_repo)

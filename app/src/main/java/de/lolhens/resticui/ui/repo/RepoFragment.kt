@@ -4,6 +4,7 @@ import android.app.AlertDialog
 import android.os.Bundle
 import android.view.*
 import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
 import de.lolhens.resticui.MainActivity
@@ -11,6 +12,7 @@ import de.lolhens.resticui.R
 import de.lolhens.resticui.config.RepoConfigId
 import de.lolhens.resticui.databinding.FragmentRepoBinding
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.CompletionException
 
 
 class RepoFragment : Fragment() {
@@ -41,17 +43,26 @@ class RepoFragment : Fragment() {
         val resticRepo = repo.repo(MainActivity.instance.restic)
         binding.textRepoUrl.setText(resticRepo.repository())
 
-        resticRepo.snapshots().thenAccept { snapshots ->
+        resticRepo.snapshots().handle { snapshots, throwable ->
             requireActivity().runOnUiThread {
                 val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
                 binding.progressRepoSnapshots.visibility = GONE
 
-                binding.listRepoSnapshots.adapter = ArrayAdapter(
-                    requireContext(),
-                    android.R.layout.simple_list_item_1,
-                    snapshots.map { "${it.time.format(formatter)} ${it.id.short}\n${it.hostname} ${it.paths[0]}" }
-                )
+                if (throwable == null) {
+                    binding.listRepoSnapshots.adapter = ArrayAdapter(
+                        requireContext(),
+                        android.R.layout.simple_list_item_1,
+                        snapshots.map { "${it.time.format(formatter)} ${it.id.short}\n${it.hostname} ${it.paths[0]}" }
+                    )
+                } else {
+                    val throwable =
+                        if (throwable is CompletionException && throwable.cause != null) throwable.cause!!
+                        else throwable
+
+                    binding.textError.setText(throwable.message)
+                    binding.textError.visibility = VISIBLE
+                }
             }
         }
 

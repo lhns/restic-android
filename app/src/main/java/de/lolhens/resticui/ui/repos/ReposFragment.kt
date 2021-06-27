@@ -26,16 +26,16 @@ class ReposFragment : Fragment() {
         _binding = FragmentReposBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        binding.fabReposAdd.setOnClickListener { view ->
-            RepoActivity.start(this, true, RepoConfigId.create())
-        }
-
         MainActivity.instance.observeConfig(viewLifecycleOwner) { config ->
             binding.listRepos.adapter = ArrayAdapter(
                 requireContext(),
                 android.R.layout.simple_list_item_1,
                 config.repos.map { it.base.name }
             )
+        }
+
+        binding.fabReposAdd.setOnClickListener { view ->
+            RepoActivity.start(this, true, RepoConfigId.create())
         }
 
         binding.listRepos.setOnItemClickListener { parent, view, position, id ->

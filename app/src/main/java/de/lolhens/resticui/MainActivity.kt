@@ -1,5 +1,6 @@
 package de.lolhens.resticui
 
+import android.Manifest
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LifecycleOwner
@@ -69,6 +70,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         _restic = Restic(ResticStorage.fromContext(applicationContext))
+
+        if (!Permissions.granted(applicationContext, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            Permissions.request(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                .thenApply { granted ->
+                    if (granted) {
+                        _restic = Restic(ResticStorage.fromContext(applicationContext))
+                    }
+                }
+        }
     }
 
     val config: Config get() = _config.value!!.first

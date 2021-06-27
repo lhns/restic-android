@@ -6,5 +6,7 @@ import java.io.File
 
 @Serializable
 data class FolderConfig(
-    val directory: @Serializable(with = FileSerializer::class) File
+    val id: @Serializable(with = FolderConfigIdSerializer::class) FolderConfigId,
+    val path: @Serializable(with = FileSerializer::class) File,
+    val schedule: String
 )

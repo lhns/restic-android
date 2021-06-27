@@ -10,11 +10,14 @@
     <string name="button_delete">Delete</string>
     <string name="button_edit">Edit</string>
     <string name="button_done">Done</string>
+    <string name="button_browse">Browse</string>
     <string name="toast_saving">Saving…</string>
     <string name="alert_delete_repo_title">Delete Repository Configuration</string>
-    <string name="alert_delete_repo_message">Do you want to delete this repository configuration?</string>
+    <string name="alert_delete_repo_message">Do you want to delete this Repository configuration?</string>
     <string name="alert_init_repo_title">Initialize Repository</string>
-    <string name="alert_init_repo_message">No repository found. Do you want to initialize a new repo at this location?</string>
+    <string name="alert_init_repo_message">No repository found. Do you want to initialize a new Repository at this location?</string>
     <string name="alert_save_repo_title">Failed to initialize Repository</string>
     <string name="alert_save_repo_message">Failed to initialize Repository. Do you want to save anyway?</string>
+    <string name="alert_delete_folder_title">Delete Folder Configuration</string>
+    <string name="alert_delete_folder_message">Do you want to delete this Folder configuration?</string>
 </resources>

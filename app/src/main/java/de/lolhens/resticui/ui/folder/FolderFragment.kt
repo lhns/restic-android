@@ -1,12 +1,14 @@
 package de.lolhens.resticui.ui.folder
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.view.*
 import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import de.lolhens.resticui.MainActivity
 import de.lolhens.resticui.R
+import de.lolhens.resticui.config.FolderConfigId
 import de.lolhens.resticui.databinding.FragmentFolderBinding
 import java.util.concurrent.CompletableFuture
 
@@ -17,6 +19,9 @@ class FolderFragment : Fragment() {
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
+
+    private lateinit var _folderId: FolderConfigId
+    private val folderId: FolderConfigId get() = _folderId
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -30,6 +35,9 @@ class FolderFragment : Fragment() {
         val root: View = binding.root
 
         setHasOptionsMenu(true)
+
+        _folderId = (requireActivity() as FolderActivity).folderId
+        val folder = MainActivity.instance.config.folders.find { it.first.id == folderId }
 
         val textView: TextView = binding.folderTextFolder
         folderViewModel.text.observe(viewLifecycleOwner) {
@@ -52,17 +60,30 @@ class FolderFragment : Fragment() {
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(de.lolhens.resticui.R.menu.nav_menu_entry, menu)
+        inflater.inflate(R.menu.nav_menu_entry, menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean =
         when (item.getItemId()) {
             R.id.action_delete -> {
-                Toast.makeText(context, "Delete", Toast.LENGTH_SHORT).show()
+                AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.alert_delete_folder_title)
+                    .setMessage(R.string.alert_delete_folder_message)
+                    .setPositiveButton(android.R.string.ok) { dialog, buttonId ->
+                        MainActivity.instance.configure { config ->
+                            config.copy(folders = config.folders.filterNot { it.first.id == folderId })
+                        }
+
+                        requireActivity().finish()
+                    }
+                    .setNegativeButton(android.R.string.cancel) { _, _ -> }
+                    .show()
                 true
             }
             R.id.action_edit -> {
-                Toast.makeText(context, "Edit", Toast.LENGTH_SHORT).show()
+                FolderActivity.start(this, true, folderId)
+
+                requireActivity().finish()
                 true
             }
             else -> super.onOptionsItemSelected(item)
