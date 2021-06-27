@@ -87,7 +87,10 @@ class FolderFragment : Fragment() {
                             ${progress.files_done}${if (progress.total_files != null) " / ${progress.total_files}" else ""} Files
                             ${progress.bytesDoneString()}${if (progress.total_bytes != null) " / ${progress.totalBytesString()}" else ""}
                         """.trimIndent()
+
+                        binding.textBackupError.visibility = GONE
                         binding.textBackupDetails.setText(details)
+                        binding.textBackupDetails.visibility = VISIBLE
                     }
                 }.handle { summary, throwable ->
                     requireActivity().runOnUiThread {
@@ -98,7 +101,9 @@ class FolderFragment : Fragment() {
                                 if (throwable is CompletionException && throwable.cause != null) throwable.cause!!
                                 else throwable
 
+                            binding.textBackupDetails.visibility = GONE
                             binding.textBackupError.setText(throwable.message)
+                            binding.textBackupError.visibility = VISIBLE
                         }
                     }
                 }
