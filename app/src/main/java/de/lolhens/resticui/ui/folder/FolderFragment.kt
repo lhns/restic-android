@@ -92,11 +92,14 @@ class FolderFragment : Fragment() {
                 }.handle { summary, throwable ->
                     requireActivity().runOnUiThread {
                         binding.buttonBackup.isEnabled = true
-                    }
 
-                    if (throwable != null) {
-                        throwable.printStackTrace()
-                        throw throwable
+                        if (throwable != null) {
+                            val throwable =
+                                if (throwable is CompletionException && throwable.cause != null) throwable.cause!!
+                                else throwable
+
+                            binding.textBackupError.setText(throwable.message)
+                        }
                     }
                 }
             }
