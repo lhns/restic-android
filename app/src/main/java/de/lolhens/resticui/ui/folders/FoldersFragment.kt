@@ -10,16 +10,12 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import de.lolhens.resticui.MainActivity
 import de.lolhens.resticui.Permissions
 import de.lolhens.resticui.databinding.FragmentFoldersBinding
 import de.lolhens.resticui.ui.folder.FolderActivity
 
 class FoldersFragment : Fragment() {
-
-    private lateinit var foldersViewModel: FoldersViewModel
     private var _binding: FragmentFoldersBinding? = null
 
     // This property is only valid between onCreateView and
@@ -32,14 +28,6 @@ class FoldersFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val mainActivity = MainActivity.instance
-
-        foldersViewModel = ViewModelProvider(this, object : ViewModelProvider.Factory {
-            override fun <T : ViewModel?> create(modelClass: Class<T>): T =
-                if (modelClass.isAssignableFrom(FoldersViewModel::class.java))
-                    FoldersViewModel(mainActivity.config, mainActivity.restic) as T
-                else
-                    throw IllegalArgumentException("Unknown ViewModel class")
-        }).get(FoldersViewModel::class.java)
 
         _binding = FragmentFoldersBinding.inflate(inflater, container, false)
         val root: View = binding.root
@@ -81,14 +69,22 @@ class FoldersFragment : Fragment() {
             startActivityForResult(intent, 0)
         }
 
-        foldersViewModel.list.observe(viewLifecycleOwner) { directories ->
+        MainActivity.instance.observeConfig(viewLifecycleOwner) { config ->
+            binding.listFolders.adapter = ArrayAdapter(
+                requireContext(),
+                android.R.layout.simple_list_item_1,
+                config.folders.map { "${it.second.base.name} ${it.first.directory.path}" }
+            )
+        }
+
+        /*foldersViewModel.list.observe(viewLifecycleOwner) { directories ->
             binding.listFolders.adapter = ArrayAdapter(
                 requireContext(),
                 android.R.layout.simple_list_item_1,
                 directories.map { directory -> "${directory.second.base.name}/${directory.first.path.dropWhile { it == '/' }}" }
                     .plus("test")
             )
-        }
+        }*/
 
         return root
     }

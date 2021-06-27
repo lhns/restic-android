@@ -44,6 +44,15 @@ abstract class ResticRepo(
             out.joinToString("\n")
         }
 
+    fun stats(): CompletableFuture<ResticStats> =
+        restic(
+            listOf("--json", "stats"),
+            filterOut = filterJson
+        ).thenApply { (out, _) ->
+            val json = out[0]
+            format.decodeFromString<ResticStats>(json)
+        }
+
     fun snapshots(): CompletableFuture<List<ResticSnapshot>> =
         restic(
             listOf("--json", "snapshots"),

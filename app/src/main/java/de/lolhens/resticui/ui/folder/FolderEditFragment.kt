@@ -2,7 +2,6 @@ package de.lolhens.resticui.ui.folder
 
 import android.os.Bundle
 import android.view.*
-import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import de.lolhens.resticui.R
@@ -25,7 +24,7 @@ class FolderEditFragment : Fragment() {
 
         setHasOptionsMenu(true)
 
-        val textView: TextView = binding.folderEditTextFolder
+        //val textView: TextView = binding.spinnerRepo
 
         return root
     }

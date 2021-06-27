@@ -1,6 +1,5 @@
 package de.lolhens.resticui.ui.repos
 
-import android.R
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -34,7 +33,7 @@ class ReposFragment : Fragment() {
         MainActivity.instance.observeConfig(viewLifecycleOwner) { config ->
             binding.listRepos.adapter = ArrayAdapter(
                 requireContext(),
-                R.layout.simple_list_item_1,
+                android.R.layout.simple_list_item_1,
                 config.repos.map { it.base.name }
             )
         }

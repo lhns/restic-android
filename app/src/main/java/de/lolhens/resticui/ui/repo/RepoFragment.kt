@@ -3,6 +3,7 @@ package de.lolhens.resticui.ui.repo
 import android.app.AlertDialog
 import android.os.Bundle
 import android.view.*
+import android.view.View.GONE
 import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
 import de.lolhens.resticui.MainActivity
@@ -43,6 +44,9 @@ class RepoFragment : Fragment() {
         resticRepo.snapshots().thenAccept { snapshots ->
             requireActivity().runOnUiThread {
                 val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+
+                binding.progressRepoSnapshots.visibility = GONE
+
                 binding.listRepoSnapshots.adapter = ArrayAdapter(
                     requireContext(),
                     android.R.layout.simple_list_item_1,
