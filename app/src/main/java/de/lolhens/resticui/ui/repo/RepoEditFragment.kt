@@ -52,7 +52,7 @@ class RepoEditFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean =
-        when (item.getItemId()) {
+        when (item.itemId) {
             R.id.action_done -> {
                 val repoName = binding.editRepoName.text.toString()
                 val repoPassword = binding.editRepoPassword.text.toString()
@@ -101,7 +101,7 @@ class RepoEditFragment : Fragment() {
                                 AlertDialog.Builder(requireActivity())
                                     .setTitle(R.string.alert_init_repo_title)
                                     .setMessage(R.string.alert_init_repo_message)
-                                    .setPositiveButton(android.R.string.ok) { dialog, buttonId ->
+                                    .setPositiveButton(android.R.string.ok) { _, _ ->
                                         resticRepo.init().handle { _, throwable ->
                                             if (throwable == null) {
                                                 saveRepo()

@@ -138,8 +138,7 @@ class MainActivity : AppCompatActivity() {
         }
 
     fun backup(folder: FolderConfig): Boolean {
-        val repo = folder.repo(config)
-        if (repo == null) return false
+        val repo = folder.repo(config) ?: return false
 
         val resticRepo = repo.repo(restic)
 

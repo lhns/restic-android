@@ -95,7 +95,7 @@ class FolderEditFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean =
-        when (item.getItemId()) {
+        when (item.itemId) {
             R.id.action_done -> {
                 val selectedRepoName = binding.spinnerRepo.selectedItem.toString()
                 val repo =

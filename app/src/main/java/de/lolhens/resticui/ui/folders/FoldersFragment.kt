@@ -34,11 +34,11 @@ class FoldersFragment : Fragment() {
             )
         }
 
-        binding.fabFoldersAdd.setOnClickListener { view ->
+        binding.fabFoldersAdd.setOnClickListener { _ ->
             FolderActivity.start(this, true, FolderConfigId.create())
         }
 
-        binding.listFolders.setOnItemClickListener { parent, view, position, id ->
+        binding.listFolders.setOnItemClickListener { _, _, position, _ ->
             val folder = MainActivity.instance.config.folders.get(position)
             FolderActivity.start(this, false, folder.id)
         }

@@ -67,9 +67,8 @@ class FolderFragment : Fragment() {
 
                         // TODO: filter hostname
                         val snapshots =
-                            if (snapshots != null) snapshots.filter { it.paths.contains(folder.path) }
-                                .reversed()
-                            else emptyList()
+                            snapshots?.filter { it.paths.contains(folder.path) }?.reversed()
+                                ?: emptyList()
 
                         snapshotIds = snapshots.map { it.id }
                         binding.listFolderSnapshots.adapter = ArrayAdapter(
@@ -141,16 +140,16 @@ class FolderFragment : Fragment() {
                 }
             }
 
-            binding.listFolderSnapshots.setOnItemClickListener { parent, view, position, id ->
+            binding.listFolderSnapshots.setOnItemClickListener { _, _, position, _ ->
                 val snapshotId = snapshotIds?.get(position)
                 if (snapshotId != null) SnapshotActivity.start(this, folder.repoId, snapshotId)
             }
 
-            binding.buttonBackup.setOnClickListener { view ->
+            binding.buttonBackup.setOnClickListener { _ ->
                 MainActivity.instance.backup(folder)
             }
 
-            binding.buttonBackupCancel.setOnClickListener { view ->
+            binding.buttonBackupCancel.setOnClickListener { _ ->
                 AlertDialog.Builder(requireContext())
                     .setTitle(R.string.alert_backup_cancel_title)
                     .setMessage(R.string.alert_backup_cancel_message)
@@ -171,12 +170,12 @@ class FolderFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean =
-        when (item.getItemId()) {
+        when (item.itemId) {
             R.id.action_delete -> {
                 AlertDialog.Builder(requireContext())
                     .setTitle(R.string.alert_delete_folder_title)
                     .setMessage(R.string.alert_delete_folder_message)
-                    .setPositiveButton(android.R.string.ok) { dialog, buttonId ->
+                    .setPositiveButton(android.R.string.ok) { _, _ ->
                         MainActivity.instance.configure { config ->
                             config.copy(folders = config.folders.filterNot { it.id == folderId })
                         }

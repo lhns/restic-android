@@ -34,11 +34,11 @@ class ReposFragment : Fragment() {
             )
         }
 
-        binding.fabReposAdd.setOnClickListener { view ->
+        binding.fabReposAdd.setOnClickListener { _ ->
             RepoActivity.start(this, true, RepoConfigId.create())
         }
 
-        binding.listRepos.setOnItemClickListener { parent, view, position, id ->
+        binding.listRepos.setOnItemClickListener { _, _, position, _ ->
             val repo = MainActivity.instance.config.repos.get(position)
             RepoActivity.start(this, false, repo.base.id)
         }

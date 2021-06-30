@@ -49,12 +49,12 @@ class SnapshotFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean =
-        when (item.getItemId()) {
+        when (item.itemId) {
             R.id.action_delete -> {
                 AlertDialog.Builder(requireContext())
                     .setTitle(R.string.alert_delete_snapshot_title)
                     .setMessage(R.string.alert_delete_snapshot_message)
-                    .setPositiveButton(android.R.string.ok) { dialog, buttonId ->
+                    .setPositiveButton(android.R.string.ok) { _, _ ->
                         val repo = MainActivity.instance.config.repos.find { it.base.id == repoId }
                         if (repo != null) {
                             val resticRepo = repo.repo(MainActivity.instance.restic)

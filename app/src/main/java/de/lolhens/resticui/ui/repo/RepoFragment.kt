@@ -54,9 +54,7 @@ class RepoFragment : Fragment() {
 
                     binding.progressRepoSnapshots.visibility = GONE
 
-                    val snapshots =
-                        if (snapshots != null) snapshots.reversed()
-                        else emptyList()
+                    val snapshots = snapshots?.reversed() ?: emptyList()
 
                     snapshotIds = snapshots.map { it.id }
                     binding.listRepoSnapshots.adapter = ArrayAdapter(
@@ -77,7 +75,7 @@ class RepoFragment : Fragment() {
             }
         }
 
-        binding.listRepoSnapshots.setOnItemClickListener { parent, view, position, id ->
+        binding.listRepoSnapshots.setOnItemClickListener { _, _, position, _ ->
             val snapshotId = snapshotIds?.get(position)
             if (snapshotId != null) SnapshotActivity.start(this, repoId, snapshotId)
         }
@@ -91,12 +89,12 @@ class RepoFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean =
-        when (item.getItemId()) {
+        when (item.itemId) {
             R.id.action_delete -> {
                 AlertDialog.Builder(requireContext())
                     .setTitle(R.string.alert_delete_repo_title)
                     .setMessage(R.string.alert_delete_repo_message)
-                    .setPositiveButton(android.R.string.ok) { dialog, buttonId ->
+                    .setPositiveButton(android.R.string.ok) { _, _ ->
                         MainActivity.instance.configure { config ->
                             config.copy(repos = config.repos.filterNot { it.base.id == repoId })
                         }
