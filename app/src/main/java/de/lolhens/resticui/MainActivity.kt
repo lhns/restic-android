@@ -13,6 +13,7 @@ import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import de.lolhens.resticui.config.Config
 import de.lolhens.resticui.config.ConfigManager
+import de.lolhens.resticui.config.FolderConfigId
 import de.lolhens.resticui.databinding.ActivityMainBinding
 import de.lolhens.resticui.restic.Restic
 import de.lolhens.resticui.restic.ResticStorage
@@ -35,6 +36,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var _restic: Restic
 
     val restic get() = _restic
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,6 +96,33 @@ class MainActivity : AppCompatActivity() {
         }))
         return callback
     }
+
+    private val activeBackupsLock = Object()
+    private var _activeBackups: Map<FolderConfigId, MutableLiveData<ActiveBackup>> = emptyMap()
+
+    fun activeBackup(folderId: FolderConfigId): MutableLiveData<ActiveBackup> =
+        synchronized(activeBackupsLock) {
+            val liveData = _activeBackups.get(folderId)
+            if (liveData == null) {
+                val liveData = MutableLiveData<ActiveBackup>()
+                _activeBackups = _activeBackups.plus(Pair(folderId, liveData))
+                liveData
+            } else {
+                liveData
+            }
+        }
+
+    /*fun cancelBackup
+
+    fun backup(resticRepo: ResticRepo, folder: FolderConfig): CompletableFuture<ResticBackupSummary> {
+        lateinit var future: CompletableFuture<ResticBackupSummary>
+        future = resticRepo.backup(folder.path, { progress ->
+            _resticBackupProgress.postValue(Pair(progress, future))
+        })
+        return future
+    }*/
+
+    //fun activeBackup(folderId: FolderConfigId): LiveData<ActiveBackup?> = throw RuntimeException()
 
     override fun onRequestPermissionsResult(
         requestCode: Int,

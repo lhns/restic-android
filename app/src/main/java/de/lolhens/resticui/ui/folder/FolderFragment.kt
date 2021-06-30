@@ -7,11 +7,15 @@ import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
+import de.lolhens.resticui.ActiveBackup
 import de.lolhens.resticui.MainActivity
 import de.lolhens.resticui.R
 import de.lolhens.resticui.config.FolderConfigId
 import de.lolhens.resticui.databinding.FragmentFolderBinding
+import de.lolhens.resticui.restic.ResticException
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
 import kotlin.math.roundToInt
 
@@ -47,66 +51,140 @@ class FolderFragment : Fragment() {
 
             val resticRepo = folderRepo.repo(MainActivity.instance.restic)
 
-            resticRepo.snapshots().handle { snapshots, throwable ->
-                requireActivity().runOnUiThread {
-                    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+            MainActivity.instance.observeConfig(viewLifecycleOwner) { config ->
+                val folder = config.folders.find { it.id == folderId }!!
 
-                    binding.progressFolderSnapshots.visibility = View.GONE
+                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
-                    if (throwable == null) {
-                        val snapshots = snapshots.filter { it.paths.contains(folder.path) }
+                binding.textLastBackup.setText(
+                    if (folder.lastBackup == null) ""
+                    else "Last Backup on ${folder.lastBackup.format(formatter)}"
+                )
 
-                        binding.listFolderSnapshots.adapter = ArrayAdapter(
-                            requireContext(),
-                            android.R.layout.simple_list_item_1,
-                            snapshots.map { "${it.time.format(formatter)} ${it.id.short}\n${it.hostname} ${it.paths[0]}" }
+                resticRepo.snapshots().handle { snapshots, throwable ->
+                    requireActivity().runOnUiThread {
+                        binding.progressFolderSnapshots.visibility = GONE
+
+                        if (throwable == null) {
+                            val snapshots = snapshots.filter { it.paths.contains(folder.path) }
+
+                            binding.listFolderSnapshots.adapter = ArrayAdapter(
+                                requireContext(),
+                                android.R.layout.simple_list_item_1,
+                                snapshots.map { "${it.time.format(formatter)} ${it.id.short}\n${it.hostname} ${it.paths[0]}" }
+                            )
+                        } else {
+                            val throwable =
+                                if (throwable is CompletionException && throwable.cause != null) throwable.cause!!
+                                else throwable
+
+                            binding.textError.setText(throwable.message)
+                            binding.textError.visibility = View.VISIBLE
+                        }
+                    }
+                }
+            }
+
+            val activeBackup = MainActivity.instance.activeBackup(folderId)
+            activeBackup.observe(viewLifecycleOwner) { backup ->
+                println(backup)
+
+                binding.progressBackupDetails.visibility =
+                    if (backup.isStarting()) VISIBLE else GONE
+
+                binding.textBackupDetails.visibility =
+                    if (!backup.isStarting() && backup.error == null) VISIBLE else GONE
+
+                binding.textBackupError.visibility =
+                    if (backup.error != null) VISIBLE else GONE
+
+                binding.buttonBackup.visibility =
+                    if (!backup.isInProgress()) VISIBLE else GONE
+
+                binding.buttonBackupCancel.visibility =
+                    if (backup.isInProgress()) VISIBLE else GONE
+
+                if (backup.isInProgress()) {
+                    if (backup.progress != null) {
+                        binding.progressBackup.setProgress(
+                            (backup.progress.percentDone100()).roundToInt(),
+                            true
                         )
-                    } else {
-                        val throwable =
-                            if (throwable is CompletionException && throwable.cause != null) throwable.cause!!
-                            else throwable
 
-                        binding.textError.setText(throwable.message)
-                        binding.textError.visibility = View.VISIBLE
+                        val details = """
+                            ${backup.progress.percentDoneString()} done / ${backup.progress.timeElapsedString()} elapsed
+                            ${backup.progress.files_done}${if (backup.progress.total_files != null) " / ${backup.progress.total_files}" else ""} Files
+                            ${backup.progress.bytesDoneString()}${if (backup.progress.total_bytes != null) " / ${backup.progress.totalBytesString()}" else ""}
+                        """.trimIndent()
+
+                        binding.textBackupDetails.setText(details)
+                    }
+                } else {
+                    binding.progressBackup.setProgress(0, true)
+
+                    if (backup.error != null) {
+                        binding.textBackupError.setText(backup.error)
+                    } else {
+                        val details = """
+                            Backup completed in ${backup.progress!!.timeElapsedString()}!
+                            ${backup.progress.files_done}${if (backup.progress.total_files != null) " / ${backup.progress.total_files}" else ""} Files
+                            ${backup.progress.bytesDoneString()}${if (backup.progress.total_bytes != null) " / ${backup.progress.totalBytesString()}" else ""}
+                        """.trimIndent()
+
+                        binding.textBackupDetails.setText(details)
                     }
                 }
             }
 
             binding.buttonBackup.setOnClickListener { view ->
-                binding.buttonBackup.isEnabled = false
-                binding.progressBackupDetails.visibility = VISIBLE
+                val cancel = CompletableFuture<Unit>()
 
-                resticRepo.backup(folder.path) { progress ->
-                    requireActivity().runOnUiThread {
-                        binding.progressBackupDetails.visibility = GONE
+                activeBackup.postValue(ActiveBackup(null, null, null, cancel))
 
-                        binding.progressBackup.setProgress(progress.percent_done.roundToInt(), true)
-
-                        val details = """
-                            ${progress.percentDoneString()} done / ${progress.timeElapsedString()} elapsed
-                            ${progress.files_done}${if (progress.total_files != null) " / ${progress.total_files}" else ""} Files
-                            ${progress.bytesDoneString()}${if (progress.total_bytes != null) " / ${progress.totalBytesString()}" else ""}
-                        """.trimIndent()
-
-                        binding.textBackupError.visibility = GONE
-                        binding.textBackupDetails.setText(details)
-                        binding.textBackupDetails.visibility = VISIBLE
+                resticRepo.backup(folder.path, { progress ->
+                    activeBackup.postValue(activeBackup.value!!.copy(progress = progress))
+                }, cancel).handle { summary, throwable ->
+                    val throwable = if (throwable == null) null else {
+                        if (throwable is CompletionException && throwable.cause != null) throwable.cause!!
+                        else throwable
                     }
-                }.handle { summary, throwable ->
-                    requireActivity().runOnUiThread {
-                        binding.buttonBackup.isEnabled = true
 
-                        if (throwable != null) {
-                            val throwable =
-                                if (throwable is CompletionException && throwable.cause != null) throwable.cause!!
-                                else throwable
+                    val error =
+                        if (throwable == null) {
+                            val now = ZonedDateTime.now()
 
-                            binding.textBackupDetails.visibility = GONE
-                            binding.textBackupError.setText(throwable.message)
-                            binding.textBackupError.visibility = VISIBLE
+                            MainActivity.instance.configure { config ->
+                                config.copy(folders = config.folders.map { folder ->
+                                    if (folder.id == folderId) folder.copy(lastBackup = now)
+                                    else folder
+                                })
+                            }
+
+                            null
+                        } else if (throwable is ResticException && throwable.cancelled) {
+                            ""
+                        } else {
+                            throwable.message
                         }
-                    }
+
+                    activeBackup.postValue(
+                        activeBackup.value!!.copy(
+                            summary = summary,
+                            error = error
+                        )
+                    )
                 }
+            }
+
+            binding.buttonBackupCancel.setOnClickListener { view ->
+                AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.alert_backup_cancel_title)
+                    .setMessage(R.string.alert_backup_cancel_message)
+                    .setPositiveButton(android.R.string.ok) { dialog, buttonId ->
+                        activeBackup.value?.cancel()
+                    }
+                    .setNegativeButton(android.R.string.cancel) { _, _ -> }
+                    .show()
             }
         }
 

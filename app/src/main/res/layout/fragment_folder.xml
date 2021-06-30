@@ -19,6 +19,19 @@
         app:layout_constraintTop_toBottomOf="@+id/text_repo" />
 
     <TextView
+        android:id="@+id/text_last_backup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:textAlignment="center"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/text_folder" />
+
+    <TextView
         android:id="@+id/text_repo"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -42,7 +55,7 @@
         android:text="@string/text_schedule"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text_folder" />
+        app:layout_constraintTop_toBottomOf="@+id/text_last_backup" />
 
     <TextView
         android:id="@+id/text_schedule"
@@ -119,6 +132,17 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         android:text="@string/button_backup"
+        app:layout_constraintBottom_toTopOf="@+id/button_backup_cancel"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/button_backup_cancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:text="@string/button_cancel"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

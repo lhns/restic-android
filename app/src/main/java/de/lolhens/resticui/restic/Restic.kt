@@ -65,7 +65,8 @@ class Restic(
         vars: List<Pair<String, String>> = emptyList(),
         hosts: List<String> = emptyList(),
         filterOut: ((String) -> Boolean)? = null,
-        filterErr: ((String) -> Boolean)? = null
+        filterErr: ((String) -> Boolean)? = null,
+        cancel: CompletableFuture<Unit>? = null
     ): CompletableFuture<Pair<List<String>, List<String>>> =
         hostsFile(hosts).thenCompose { hostsFile ->
             CompletableFuture.supplyAsync {
@@ -77,19 +78,38 @@ class Restic(
                 fun InputStream.linesAsync(filter: ((String) -> Boolean)?) =
                     CompletableFuture.supplyAsync {
                         this.bufferedReader().lineSequence()
-                            .filter { if (filter == null) true else filter(it) }.toList()
+                            .filter {
+                                if (filter == null) true
+                                else if (cancel == null || !cancel.isDone) filter(it)
+                                else false
+                            }.toList()
                     }
 
                 val outFuture = process.inputStream.linesAsync(filterOut)
                 val errFuture = process.errorStream.linesAsync(filterErr)
 
-                outFuture.thenCompose { out ->
+                val future = outFuture.thenCompose { out ->
                     errFuture.thenApplyAsync { err ->
                         val exitCode = process.waitFor()
                         if (exitCode == 0) Pair(out, err)
                         else throw ResticException(exitCode, err)
                     }
                 }
+
+                if (cancel != null) {
+                    cancel.thenRun {
+                        future.completeExceptionally(
+                            ResticException(
+                                0,
+                                emptyList(),
+                                cancelled = true
+                            )
+                        )
+                        process.destroy()
+                    }
+                }
+
+                future
             }.handle { result, exception ->
                 hostsFile.delete()
 

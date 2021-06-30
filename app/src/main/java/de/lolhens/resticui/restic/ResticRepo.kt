@@ -27,7 +27,8 @@ abstract class ResticRepo(
         args: List<String>,
         vars: List<Pair<String, String>> = emptyList(),
         filterOut: ((String) -> Boolean)? = null,
-        filterErr: ((String) -> Boolean)? = null
+        filterErr: ((String) -> Boolean)? = null,
+        cancel: CompletableFuture<Unit>? = null
     ) = restic.restic(
         args().plus(args),
         listOf(
@@ -36,7 +37,8 @@ abstract class ResticRepo(
         ).plus(vars()).plus(vars),
         hosts(),
         filterOut,
-        filterErr
+        filterErr,
+        cancel
     )
 
     fun init(): CompletableFuture<String> =
@@ -82,7 +84,8 @@ abstract class ResticRepo(
 
     fun backup(
         path: File,
-        onProgress: (ResticBackupProgress) -> Unit
+        onProgress: (ResticBackupProgress) -> Unit,
+        cancel: CompletableFuture<Unit>? = null
     ): CompletableFuture<ResticBackupSummary> =
         restic(
             listOf("--json", "backup", path.absolutePath),
@@ -94,7 +97,8 @@ abstract class ResticRepo(
                     false
                 } else
                     isJson
-            }
+            },
+            cancel = cancel
         ).thenApply { (out, _) ->
             val json = out[0]
             format.decodeFromString<ResticBackupSummary>(json)
