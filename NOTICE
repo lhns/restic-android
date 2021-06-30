@@ -1,0 +1,13 @@
+# restic-android
+
+This project includes binaries of [Restic](https://github.com/restic/restic)
+* LICENSE:
+  * https://github.com/restic/restic/blob/master/LICENSE
+* HOMEPAGE:
+  * https://restic.net/
+
+This project includes binaries of [termux/proot](https://github.com/termux/proot)
+* LICENSE:
+  * https://github.com/termux/proot/blob/master/COPYING
+* HOMEPAGE:
+  * https://wiki.termux.com/wiki/PRoot
