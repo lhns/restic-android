@@ -10,6 +10,12 @@ import kotlinx.serialization.encoding.Encoder
 
 @Serializable(with = ResticSnapshotIdSerializer::class)
 data class ResticSnapshotId(val id: String) {
+    companion object {
+        fun fromString(string: String): ResticSnapshotId = ResticSnapshotId(string)
+    }
+
+    override fun toString(): String = id
+
     val short get() = id.take(8)
 }
 

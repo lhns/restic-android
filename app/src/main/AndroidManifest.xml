@@ -28,6 +28,9 @@
         <activity
             android:name=".ui.repo.RepoActivity"
             android:label="@string/text_repository" />
+        <activity
+            android:name=".ui.snapshot.SnapshotActivity"
+            android:label="@string/text_snapshot" />
     </application>
 
 </manifest>

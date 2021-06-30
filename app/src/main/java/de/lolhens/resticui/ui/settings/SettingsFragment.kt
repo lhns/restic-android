@@ -4,8 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.Fragment
+import de.lolhens.resticui.MainActivity
 import de.lolhens.resticui.databinding.FragmentSettingsBinding
 
 class SettingsFragment : Fragment() {
@@ -23,7 +23,30 @@ class SettingsFragment : Fragment() {
         _binding = FragmentSettingsBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val textView: TextView = binding.textSettings
+        binding.buttonUnlock.setOnClickListener {
+            MainActivity.instance.config.repos.forEach { repo ->
+                val resticRepo = repo.repo(MainActivity.instance.restic)
+                resticRepo.unlock()
+                    .handle { message, throwable ->
+                        if (throwable != null) {
+                            throwable.printStackTrace()
+                        } else {
+                            println(message)
+                        }
+                    }
+            }
+        }
+
+        binding.buttonCleanup.setOnClickListener {
+            MainActivity.instance.restic.restic(listOf("cache", "--cleanup"))
+                .handle { message, throwable ->
+                    if (throwable != null) {
+                        throwable.printStackTrace()
+                    } else {
+                        println(message)
+                    }
+                }
+        }
 
         return root
     }

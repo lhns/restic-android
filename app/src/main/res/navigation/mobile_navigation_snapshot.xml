@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation_snapshot"
+    app:startDestination="@+id/navigation_snapshot">
+
+    <fragment
+        android:id="@+id/navigation_snapshot"
+        android:name="de.lolhens.resticui.ui.snapshot.SnapshotFragment"
+        android:label="@string/text_repository"
+        tools:layout="@layout/fragment_snapshot" />
+</navigation>

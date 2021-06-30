@@ -11,9 +11,10 @@ import de.lolhens.resticui.MainActivity
 import de.lolhens.resticui.R
 import de.lolhens.resticui.config.RepoConfigId
 import de.lolhens.resticui.databinding.FragmentRepoBinding
+import de.lolhens.resticui.restic.ResticSnapshotId
+import de.lolhens.resticui.ui.snapshot.SnapshotActivity
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.CompletionException
-
 
 class RepoFragment : Fragment() {
     private var _binding: FragmentRepoBinding? = null
@@ -24,6 +25,8 @@ class RepoFragment : Fragment() {
 
     private lateinit var _repoId: RepoConfigId
     private val repoId: RepoConfigId get() = _repoId
+
+    private var snapshotIds: List<ResticSnapshotId>? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -44,27 +47,39 @@ class RepoFragment : Fragment() {
 
         binding.textRepoUrl.setText(resticRepo.repository())
 
-        resticRepo.snapshots().handle { snapshots, throwable ->
-            requireActivity().runOnUiThread {
-                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        MainActivity.instance.observeConfig(viewLifecycleOwner) { _ ->
+            resticRepo.snapshots().handle { snapshots, throwable ->
+                requireActivity().runOnUiThread {
+                    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
-                binding.progressRepoSnapshots.visibility = GONE
+                    binding.progressRepoSnapshots.visibility = GONE
 
-                if (throwable == null) {
+                    val snapshots =
+                        if (snapshots != null) snapshots.reversed()
+                        else emptyList()
+
+                    snapshotIds = snapshots.map { it.id }
                     binding.listRepoSnapshots.adapter = ArrayAdapter(
                         requireContext(),
                         android.R.layout.simple_list_item_1,
                         snapshots.map { "${it.time.format(formatter)} ${it.id.short}\n${it.hostname} ${it.paths[0]}" }
                     )
-                } else {
-                    val throwable =
-                        if (throwable is CompletionException && throwable.cause != null) throwable.cause!!
-                        else throwable
 
-                    binding.textError.setText(throwable.message)
-                    binding.textError.visibility = VISIBLE
+                    if (throwable != null) {
+                        val throwable =
+                            if (throwable is CompletionException && throwable.cause != null) throwable.cause!!
+                            else throwable
+
+                        binding.textError.setText(throwable.message)
+                        binding.textError.visibility = VISIBLE
+                    }
                 }
             }
+        }
+
+        binding.listRepoSnapshots.setOnItemClickListener { parent, view, position, id ->
+            val snapshotId = snapshotIds?.get(position)
+            if (snapshotId != null) SnapshotActivity.start(this, repoId, snapshotId)
         }
 
         return root

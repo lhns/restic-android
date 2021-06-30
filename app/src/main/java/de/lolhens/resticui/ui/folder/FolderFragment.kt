@@ -11,6 +11,8 @@ import de.lolhens.resticui.MainActivity
 import de.lolhens.resticui.R
 import de.lolhens.resticui.config.FolderConfigId
 import de.lolhens.resticui.databinding.FragmentFolderBinding
+import de.lolhens.resticui.restic.ResticSnapshotId
+import de.lolhens.resticui.ui.snapshot.SnapshotActivity
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.CompletionException
 import kotlin.math.roundToInt
@@ -24,6 +26,8 @@ class FolderFragment : Fragment() {
 
     private lateinit var _folderId: FolderConfigId
     private val folderId: FolderConfigId get() = _folderId
+
+    private var snapshotIds: List<ResticSnapshotId>? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -61,15 +65,20 @@ class FolderFragment : Fragment() {
                     requireActivity().runOnUiThread {
                         binding.progressFolderSnapshots.visibility = GONE
 
-                        if (throwable == null) {
-                            val snapshots = snapshots.filter { it.paths.contains(folder.path) }
+                        // TODO: filter hostname
+                        val snapshots =
+                            if (snapshots != null) snapshots.filter { it.paths.contains(folder.path) }
+                                .reversed()
+                            else emptyList()
 
-                            binding.listFolderSnapshots.adapter = ArrayAdapter(
-                                requireContext(),
-                                android.R.layout.simple_list_item_1,
-                                snapshots.map { "${it.time.format(formatter)} ${it.id.short}\n${it.hostname} ${it.paths[0]}" }
-                            )
-                        } else {
+                        snapshotIds = snapshots.map { it.id }
+                        binding.listFolderSnapshots.adapter = ArrayAdapter(
+                            requireContext(),
+                            android.R.layout.simple_list_item_1,
+                            snapshots.map { "${it.time.format(formatter)} ${it.id.short}" }
+                        )
+
+                        if (throwable != null) {
                             val throwable =
                                 if (throwable is CompletionException && throwable.cause != null) throwable.cause!!
                                 else throwable
@@ -130,6 +139,11 @@ class FolderFragment : Fragment() {
                         binding.textBackupDetails.setText(details)
                     }
                 }
+            }
+
+            binding.listFolderSnapshots.setOnItemClickListener { parent, view, position, id ->
+                val snapshotId = snapshotIds?.get(position)
+                if (snapshotId != null) SnapshotActivity.start(this, folder.repoId, snapshotId)
             }
 
             binding.buttonBackup.setOnClickListener { view ->

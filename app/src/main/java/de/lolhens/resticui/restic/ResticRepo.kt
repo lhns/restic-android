@@ -69,6 +69,11 @@ abstract class ResticRepo(
             out.joinToString("\n")
         }
 
+    fun unlock(): CompletableFuture<String> =
+        restic(listOf("unlock")).thenApply { (out, _) ->
+            out.joinToString("\n")
+        }
+
     fun ls(snapshotId: ResticSnapshotId): CompletableFuture<Pair<ResticSnapshot, List<ResticFile>>> =
         restic(
             listOf("--json", "ls", snapshotId.id),
