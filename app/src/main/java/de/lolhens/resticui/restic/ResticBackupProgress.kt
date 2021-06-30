@@ -12,10 +12,15 @@ data class ResticBackupProgress(
     val total_bytes: Long? = null,
     val bytes_done: Long = 0
 ) {
+    companion object {
+        fun zero() = ResticBackupProgress(percent_done = 0.0)
+    }
+
     fun percentDone100() = percent_done * 100
 
     fun percentDoneString() =
-        (if (percentDone100() < 0.01) "%.4f".format(percentDone100())
+        (if (percent_done == 0.0) "0"
+        else if (percentDone100() < 0.01) "%.4f".format(percentDone100())
         else if (percentDone100() < 1) "%.2f".format(percentDone100())
         else percentDone100().roundToInt().toString()) + "%"
 

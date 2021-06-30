@@ -7,15 +7,11 @@ import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
-import de.lolhens.resticui.ActiveBackup
 import de.lolhens.resticui.MainActivity
 import de.lolhens.resticui.R
 import de.lolhens.resticui.config.FolderConfigId
 import de.lolhens.resticui.databinding.FragmentFolderBinding
-import de.lolhens.resticui.restic.ResticException
-import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
 import kotlin.math.roundToInt
 
@@ -42,14 +38,14 @@ class FolderFragment : Fragment() {
         _folderId = (requireActivity() as FolderActivity).folderId
         val config = MainActivity.instance.config
         val folder = config.folders.find { it.id == folderId }!!
-        val folderRepo = folder.repo(config)
+        val repo = folder.repo(config)
 
-        if (folderRepo != null) {
-            binding.textRepo.setText(folderRepo.base.name)
+        if (repo != null) {
+            binding.textRepo.setText(repo.base.name)
             binding.textFolder.setText(folder.path.path)
             binding.textSchedule.setText(folder.schedule)
 
-            val resticRepo = folderRepo.repo(MainActivity.instance.restic)
+            val resticRepo = repo.repo(MainActivity.instance.restic)
 
             MainActivity.instance.observeConfig(viewLifecycleOwner) { config ->
                 val folder = config.folders.find { it.id == folderId }!!
@@ -137,43 +133,7 @@ class FolderFragment : Fragment() {
             }
 
             binding.buttonBackup.setOnClickListener { view ->
-                val cancel = CompletableFuture<Unit>()
-
-                activeBackup.postValue(ActiveBackup(null, null, null, cancel))
-
-                resticRepo.backup(folder.path, { progress ->
-                    activeBackup.postValue(activeBackup.value!!.copy(progress = progress))
-                }, cancel).handle { summary, throwable ->
-                    val throwable = if (throwable == null) null else {
-                        if (throwable is CompletionException && throwable.cause != null) throwable.cause!!
-                        else throwable
-                    }
-
-                    val error =
-                        if (throwable == null) {
-                            val now = ZonedDateTime.now()
-
-                            MainActivity.instance.configure { config ->
-                                config.copy(folders = config.folders.map { folder ->
-                                    if (folder.id == folderId) folder.copy(lastBackup = now)
-                                    else folder
-                                })
-                            }
-
-                            null
-                        } else if (throwable is ResticException && throwable.cancelled) {
-                            ""
-                        } else {
-                            throwable.message
-                        }
-
-                    activeBackup.postValue(
-                        activeBackup.value!!.copy(
-                            summary = summary,
-                            error = error
-                        )
-                    )
-                }
+                MainActivity.instance.backup(folder)
             }
 
             binding.buttonBackupCancel.setOnClickListener { view ->
