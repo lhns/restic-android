@@ -39,37 +39,39 @@ class RepoFragment : Fragment() {
         setHasOptionsMenu(true)
 
         _repoId = (requireActivity() as RepoActivity).repoId
-        val repo = MainActivity.instance.config.repos.find { it.base.id == repoId }!!
+        val repo = MainActivity.instance.config.repos.find { it.base.id == repoId }
 
-        binding.textRepoName.setText(repo.base.name)
+        if (repo != null) {
+            binding.textRepoName.setText(repo.base.name)
 
-        val resticRepo = repo.repo(MainActivity.instance.restic)
+            val resticRepo = repo.repo(MainActivity.instance.restic)
 
-        binding.textRepoUrl.setText(resticRepo.repository())
+            binding.textRepoUrl.setText(resticRepo.repository())
 
-        MainActivity.instance.observeConfig(viewLifecycleOwner) { _ ->
-            resticRepo.snapshots().handle { snapshots, throwable ->
-                requireActivity().runOnUiThread {
-                    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+            MainActivity.instance.observeConfig(viewLifecycleOwner) { _ ->
+                resticRepo.snapshots().handle { snapshots, throwable ->
+                    requireActivity().runOnUiThread {
+                        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
-                    binding.progressRepoSnapshots.visibility = GONE
+                        binding.progressRepoSnapshots.visibility = GONE
 
-                    val snapshots = snapshots?.reversed() ?: emptyList()
+                        val snapshots = snapshots?.reversed() ?: emptyList()
 
-                    snapshotIds = snapshots.map { it.id }
-                    binding.listRepoSnapshots.adapter = ArrayAdapter(
-                        requireContext(),
-                        android.R.layout.simple_list_item_1,
-                        snapshots.map { "${it.time.format(formatter)} ${it.id.short}\n${it.hostname} ${it.paths[0]}" }
-                    )
+                        snapshotIds = snapshots.map { it.id }
+                        binding.listRepoSnapshots.adapter = ArrayAdapter(
+                            requireContext(),
+                            android.R.layout.simple_list_item_1,
+                            snapshots.map { "${it.time.format(formatter)} ${it.id.short}\n${it.hostname} ${it.paths[0]}" }
+                        )
 
-                    if (throwable != null) {
-                        val throwable =
-                            if (throwable is CompletionException && throwable.cause != null) throwable.cause!!
-                            else throwable
+                        if (throwable != null) {
+                            val throwable =
+                                if (throwable is CompletionException && throwable.cause != null) throwable.cause!!
+                                else throwable
 
-                        binding.textError.setText(throwable.message)
-                        binding.textError.visibility = VISIBLE
+                            binding.textError.setText(throwable.message)
+                            binding.textError.visibility = VISIBLE
+                        }
                     }
                 }
             }

@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.provider.DocumentsContract
 import android.view.*
 import android.widget.ArrayAdapter
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import de.lolhens.resticui.MainActivity
 import de.lolhens.resticui.R
@@ -22,8 +23,6 @@ class FolderEditFragment : Fragment() {
 
     private lateinit var _folderId: FolderConfigId
     private val folderId: FolderConfigId get() = _folderId
-
-    val FolderSelect = 10
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -55,28 +54,9 @@ class FolderEditFragment : Fragment() {
         )
         binding.spinnerSchedule.setSelection(1)
 
-        binding.buttonFolderSelect.setOnClickListener { view ->
-            val i = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
-            i.addCategory(Intent.CATEGORY_DEFAULT)
-            startActivityForResult(Intent.createChooser(i, "Choose directory"), FolderSelect)
-
-        }
-
-        if (folder != null && folderRepo != null) {
-            binding.spinnerRepo.setSelection(MainActivity.instance.config.repos.indexOfFirst { it.base.id == folderRepo.base.id })
-            binding.editFolder.setText(folder.path.path)
-            binding.spinnerSchedule.setSelection(schedules.indexOfFirst { it == folder.schedule })
-        }
-
-        return root
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        when (requestCode) {
-            FolderSelect -> {
-                val uri = data!!.data!!
+        val directoryPicker =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                val uri = result.data!!.data!!
                 val path = ASFUriHelper.getPath(
                     requireContext(),
                     DocumentsContract.buildDocumentUriUsingTree(
@@ -86,7 +66,20 @@ class FolderEditFragment : Fragment() {
                 )
                 binding.editFolder.setText(path)
             }
+
+        binding.buttonFolderSelect.setOnClickListener { _ ->
+            val i = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+            i.addCategory(Intent.CATEGORY_DEFAULT)
+            directoryPicker.launch(Intent.createChooser(i, "Choose directory"))
         }
+
+        if (folder != null && folderRepo != null) {
+            binding.spinnerRepo.setSelection(MainActivity.instance.config.repos.indexOfFirst { it.base.id == folderRepo.base.id })
+            binding.editFolder.setText(folder.path.path)
+            binding.spinnerSchedule.setSelection(schedules.indexOfFirst { it == folder.schedule })
+        }
+
+        return root
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

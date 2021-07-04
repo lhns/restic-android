@@ -110,7 +110,7 @@ class RepoEditFragment : Fragment() {
                                                     AlertDialog.Builder(requireActivity())
                                                         .setTitle(R.string.alert_save_repo_title)
                                                         .setMessage(R.string.alert_save_repo_message)
-                                                        .setPositiveButton(android.R.string.ok) { dialog, buttonId ->
+                                                        .setPositiveButton(android.R.string.ok) { _, _ ->
                                                             saveRepo()
                                                         }
                                                         .setNegativeButton(android.R.string.cancel) { _, _ -> }

@@ -26,13 +26,13 @@ class FolderActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val edit = intent.extras!!.getBoolean("edit")
+        _folderId = FolderConfigId.fromString(intent.extras!!.getString("id")!!)
+
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
         val binding = ActivityFolderBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        val edit = intent.extras!!.getBoolean("edit")
-        _folderId = FolderConfigId.fromString(intent.extras!!.getString("id")!!)
 
         if (edit) {
             val navController = findNavController(R.id.nav_host_fragment_activity_folder)

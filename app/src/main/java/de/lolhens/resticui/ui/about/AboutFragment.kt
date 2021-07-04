@@ -16,16 +16,7 @@ class AboutFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
-    private fun aboutText(resticVersion: String? = null) = """
-            Restic UI
-            by LolHens
-            https://github.com/LolHens/restic-android
-            
-            ${resticVersion ?: ""}
-            
-            https://github.com/restic/restic
-            https://github.com/termux/proot
-        """.trimIndent()
+    private fun aboutText(resticVersion: String? = null) = resticVersion ?: ""
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -37,7 +28,7 @@ class AboutFragment : Fragment() {
 
         val restic = MainActivity.instance.restic
 
-        val textView: TextView = binding.textAbout
+        val textView: TextView = binding.textResticVersion
         textView.setText(aboutText())
         restic.version()
             .thenAccept { resticVersion ->

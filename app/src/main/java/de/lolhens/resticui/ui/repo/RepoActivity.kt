@@ -26,13 +26,13 @@ class RepoActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val edit = intent.extras!!.getBoolean("edit")
+        _repoId = RepoConfigId.fromString(intent.extras!!.getString("id")!!)
+
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
         val binding = ActivityRepoBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        val edit = intent.extras!!.getBoolean("edit")
-        _repoId = RepoConfigId.fromString(intent.extras!!.getString("id")!!)
 
         if (edit) {
             val navController = findNavController(R.id.nav_host_fragment_activity_repo)

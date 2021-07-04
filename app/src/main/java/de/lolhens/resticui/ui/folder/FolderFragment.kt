@@ -41,10 +41,10 @@ class FolderFragment : Fragment() {
 
         _folderId = (requireActivity() as FolderActivity).folderId
         val config = MainActivity.instance.config
-        val folder = config.folders.find { it.id == folderId }!!
-        val repo = folder.repo(config)
+        val folder = config.folders.find { it.id == folderId }
+        val repo = folder?.repo(config)
 
-        if (repo != null) {
+        if (folder != null && repo != null) {
             binding.textRepo.setText(repo.base.name)
             binding.textFolder.setText(folder.path.path)
             binding.textSchedule.setText(folder.schedule)
@@ -153,7 +153,7 @@ class FolderFragment : Fragment() {
                 AlertDialog.Builder(requireContext())
                     .setTitle(R.string.alert_backup_cancel_title)
                     .setMessage(R.string.alert_backup_cancel_message)
-                    .setPositiveButton(android.R.string.ok) { dialog, buttonId ->
+                    .setPositiveButton(android.R.string.ok) { _, _ ->
                         activeBackup.value?.cancel()
                     }
                     .setNegativeButton(android.R.string.cancel) { _, _ -> }

@@ -28,13 +28,13 @@ class SnapshotActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        _repoId = RepoConfigId.fromString(intent.extras!!.getString("repoId")!!)
+        _snapshotId = ResticSnapshotId.fromString(intent.extras!!.getString("snapshotId")!!)
+
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
         val binding = ActivitySnapshotBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        _repoId = RepoConfigId.fromString(intent.extras!!.getString("repoId")!!)
-        _snapshotId = ResticSnapshotId.fromString(intent.extras!!.getString("snapshotId")!!)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean =
