@@ -8,7 +8,7 @@ import java.io.File
 import java.nio.charset.StandardCharsets
 
 class ConfigManager(
-    private val context: Context,
+    context: Context,
     fileName: String = "config.json.enc"
 ) {
     private val mainKey = MasterKey.Builder(context)
@@ -23,10 +23,10 @@ class ConfigManager(
         emptyList()
     )
 
-    private fun readConfig(file: File): Config {
+    private fun readConfig(context: Context, file: File): Config {
         val encryptedFile = EncryptedFile.Builder(
             context,
-            configFile,
+            file,
             mainKey,
             EncryptedFile.FileEncryptionScheme.AES256_GCM_HKDF_4KB
         ).build()
@@ -43,9 +43,9 @@ class ConfigManager(
         return Config.fromJsonString(json)
     }
 
-    fun readConfig(): Config {
+    fun readConfig(context: Context): Config {
         if (configFile.exists()) try {
-            return readConfig(configFile)
+            return readConfig(context, configFile)
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -53,7 +53,7 @@ class ConfigManager(
         if (configFileTmp.exists()) try {
             configFile.delete()
             configFileTmp.renameTo(configFile)
-            return readConfig(configFile)
+            return readConfig(context, configFile)
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -61,7 +61,7 @@ class ConfigManager(
         return defaultConfig()
     }
 
-    fun writeConfig(config: Config) {
+    fun writeConfig(context: Context, config: Config) {
         val createBackup = configFile.exists()
 
         if (createBackup) {

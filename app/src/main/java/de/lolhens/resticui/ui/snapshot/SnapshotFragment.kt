@@ -4,7 +4,7 @@ import android.app.AlertDialog
 import android.os.Bundle
 import android.view.*
 import androidx.fragment.app.Fragment
-import de.lolhens.resticui.MainActivity
+import de.lolhens.resticui.Backup
 import de.lolhens.resticui.R
 import de.lolhens.resticui.config.RepoConfigId
 import de.lolhens.resticui.databinding.FragmentSnapshotBinding
@@ -16,6 +16,9 @@ class SnapshotFragment : Fragment() {
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
+
+    private var _backup: Backup? = null
+    private val backup get() = _backup!!
 
 
     private lateinit var _repoId: RepoConfigId
@@ -33,6 +36,8 @@ class SnapshotFragment : Fragment() {
         val root: View = binding.root
 
         setHasOptionsMenu(true)
+
+        _backup = Backup.instance(requireContext())
 
         val activity = requireActivity() as SnapshotActivity
         _repoId = activity.repoId
@@ -55,12 +60,12 @@ class SnapshotFragment : Fragment() {
                     .setTitle(R.string.alert_delete_snapshot_title)
                     .setMessage(R.string.alert_delete_snapshot_message)
                     .setPositiveButton(android.R.string.ok) { _, _ ->
-                        val repo = MainActivity.instance.config.repos.find { it.base.id == repoId }
+                        val repo = backup.config.repos.find { it.base.id == repoId }
                         if (repo != null) {
-                            val resticRepo = repo.repo(MainActivity.instance.restic)
+                            val resticRepo = repo.repo(backup.restic)
                             resticRepo.forget(listOf(snapshotId)).handle { _, throwable ->
                                 if (throwable == null) {
-                                    MainActivity.instance.configure { config ->
+                                    backup.configure { config ->
                                         config
                                     }
 
@@ -80,6 +85,7 @@ class SnapshotFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        _backup = null
         _binding = null
     }
 }

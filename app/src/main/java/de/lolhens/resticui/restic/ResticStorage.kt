@@ -10,8 +10,10 @@ interface ResticStorage {
     companion object {
         fun fromContext(context: Context): ResticStorage = object : ResticStorage {
             private val _lib = File(context.applicationInfo.nativeLibraryDir)
+            private val _cache = context.cacheDir
+
             override fun lib(): File = _lib
-            override fun cache(): File = context.cacheDir
+            override fun cache(): File = _cache
             override fun storage(): List<File> {
                 if (!Permissions.granted(context, Manifest.permission.READ_EXTERNAL_STORAGE))
                     return emptyList()

@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
-import de.lolhens.resticui.MainActivity
+import de.lolhens.resticui.Backup
 import de.lolhens.resticui.config.RepoConfigId
 import de.lolhens.resticui.databinding.FragmentReposBinding
 import de.lolhens.resticui.ui.repo.RepoActivity
@@ -18,6 +18,9 @@ class ReposFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
+    private var _backup: Backup? = null
+    private val backup get() = _backup!!
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -26,7 +29,9 @@ class ReposFragment : Fragment() {
         _binding = FragmentReposBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        MainActivity.instance.observeConfig(viewLifecycleOwner) { config ->
+        _backup = Backup.instance(requireContext())
+
+        backup.observeConfig(viewLifecycleOwner) { config ->
             binding.listRepos.adapter = ArrayAdapter(
                 requireContext(),
                 android.R.layout.simple_list_item_1,
@@ -39,7 +44,7 @@ class ReposFragment : Fragment() {
         }
 
         binding.listRepos.setOnItemClickListener { _, _, position, _ ->
-            val repo = MainActivity.instance.config.repos.get(position)
+            val repo = backup.config.repos.get(position)
             RepoActivity.start(this, false, repo.base.id)
         }
 
@@ -48,6 +53,7 @@ class ReposFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        _backup = null
         _binding = null
     }
 }

@@ -7,7 +7,7 @@ import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
-import de.lolhens.resticui.MainActivity
+import de.lolhens.resticui.Backup
 import de.lolhens.resticui.R
 import de.lolhens.resticui.config.FolderConfigId
 import de.lolhens.resticui.databinding.FragmentFolderBinding
@@ -24,6 +24,9 @@ class FolderFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
+    private var _backup: Backup? = null
+    private val backup get() = _backup!!
+
     private lateinit var _folderId: FolderConfigId
     private val folderId: FolderConfigId get() = _folderId
 
@@ -39,8 +42,10 @@ class FolderFragment : Fragment() {
 
         setHasOptionsMenu(true)
 
+        _backup = Backup.instance(requireContext())
+
         _folderId = (requireActivity() as FolderActivity).folderId
-        val config = MainActivity.instance.config
+        val config = backup.config
         val folder = config.folders.find { it.id == folderId }
         val repo = folder?.repo(config)
 
@@ -49,9 +54,9 @@ class FolderFragment : Fragment() {
             binding.textFolder.setText(folder.path.path)
             binding.textSchedule.setText(folder.schedule)
 
-            val resticRepo = repo.repo(MainActivity.instance.restic)
+            val resticRepo = repo.repo(backup.restic)
 
-            MainActivity.instance.observeConfig(viewLifecycleOwner) { config ->
+            backup.observeConfig(viewLifecycleOwner) { config ->
                 val folder = config.folders.find { it.id == folderId }!!
 
                 val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
@@ -89,7 +94,7 @@ class FolderFragment : Fragment() {
                 }
             }
 
-            val activeBackup = MainActivity.instance.activeBackup(folderId)
+            val activeBackup = backup.activeBackup(folderId)
             activeBackup.observe(viewLifecycleOwner) { backup ->
                 println(backup)
 
@@ -146,7 +151,7 @@ class FolderFragment : Fragment() {
             }
 
             binding.buttonBackup.setOnClickListener { _ ->
-                MainActivity.instance.backup(folder)
+                backup.backup(requireContext(), folder)
             }
 
             binding.buttonBackupCancel.setOnClickListener { _ ->
@@ -176,7 +181,7 @@ class FolderFragment : Fragment() {
                     .setTitle(R.string.alert_delete_folder_title)
                     .setMessage(R.string.alert_delete_folder_message)
                     .setPositiveButton(android.R.string.ok) { _, _ ->
-                        MainActivity.instance.configure { config ->
+                        backup.configure { config ->
                             config.copy(folders = config.folders.filterNot { it.id == folderId })
                         }
 
@@ -197,6 +202,7 @@ class FolderFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        _backup = null
         _binding = null
     }
 }

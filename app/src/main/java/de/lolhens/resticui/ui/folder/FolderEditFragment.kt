@@ -7,7 +7,7 @@ import android.view.*
 import android.widget.ArrayAdapter
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
-import de.lolhens.resticui.MainActivity
+import de.lolhens.resticui.Backup
 import de.lolhens.resticui.R
 import de.lolhens.resticui.config.FolderConfig
 import de.lolhens.resticui.config.FolderConfigId
@@ -20,6 +20,9 @@ class FolderEditFragment : Fragment() {
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
+
+    private var _backup: Backup? = null
+    private val backup get() = _backup!!
 
     private lateinit var _folderId: FolderConfigId
     private val folderId: FolderConfigId get() = _folderId
@@ -34,15 +37,17 @@ class FolderEditFragment : Fragment() {
 
         setHasOptionsMenu(true)
 
+        _backup = Backup.instance(requireContext())
+
         _folderId = (requireActivity() as FolderActivity).folderId
-        val config = MainActivity.instance.config
+        val config = backup.config
         val folder = config.folders.find { it.id == folderId }
         val folderRepo = folder?.repo(config)
 
         binding.spinnerRepo.adapter = ArrayAdapter(
             requireContext(),
             android.R.layout.simple_spinner_dropdown_item,
-            MainActivity.instance.config.repos.map { it.base.name }
+            backup.config.repos.map { it.base.name }
         )
 
         val schedules = arrayOf("Hourly", "Daily", "Weekly", "Monthly")
@@ -74,7 +79,7 @@ class FolderEditFragment : Fragment() {
         }
 
         if (folder != null && folderRepo != null) {
-            binding.spinnerRepo.setSelection(MainActivity.instance.config.repos.indexOfFirst { it.base.id == folderRepo.base.id })
+            binding.spinnerRepo.setSelection(backup.config.repos.indexOfFirst { it.base.id == folderRepo.base.id })
             binding.editFolder.setText(folder.path.path)
             binding.spinnerSchedule.setSelection(schedules.indexOfFirst { it == folder.schedule })
         }
@@ -92,7 +97,7 @@ class FolderEditFragment : Fragment() {
             R.id.action_done -> {
                 val selectedRepoName = binding.spinnerRepo.selectedItem.toString()
                 val repo =
-                    MainActivity.instance.config.repos.find { it.base.name == selectedRepoName }
+                    backup.config.repos.find { it.base.name == selectedRepoName }
                 val path = binding.editFolder.text.toString()
                 val schedule = binding.spinnerSchedule.selectedItem.toString()
 
@@ -107,7 +112,7 @@ class FolderEditFragment : Fragment() {
                         schedule
                     )
 
-                    MainActivity.instance.configure { config ->
+                    backup.configure { config ->
                         config.copy(folders = config.folders.filterNot { it.id == folderId }
                             .plus(folder))
                     }
@@ -124,6 +129,7 @@ class FolderEditFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        _backup = null
         _binding = null
     }
 }

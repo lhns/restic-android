@@ -7,7 +7,7 @@ import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
-import de.lolhens.resticui.MainActivity
+import de.lolhens.resticui.Backup
 import de.lolhens.resticui.R
 import de.lolhens.resticui.config.RepoConfigId
 import de.lolhens.resticui.databinding.FragmentRepoBinding
@@ -22,6 +22,9 @@ class RepoFragment : Fragment() {
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
+
+    private var _backup: Backup? = null
+    private val backup get() = _backup!!
 
     private lateinit var _repoId: RepoConfigId
     private val repoId: RepoConfigId get() = _repoId
@@ -38,17 +41,19 @@ class RepoFragment : Fragment() {
 
         setHasOptionsMenu(true)
 
+        _backup = Backup.instance(requireContext())
+
         _repoId = (requireActivity() as RepoActivity).repoId
-        val repo = MainActivity.instance.config.repos.find { it.base.id == repoId }
+        val repo = backup.config.repos.find { it.base.id == repoId }
 
         if (repo != null) {
             binding.textRepoName.setText(repo.base.name)
 
-            val resticRepo = repo.repo(MainActivity.instance.restic)
+            val resticRepo = repo.repo(backup.restic)
 
             binding.textRepoUrl.setText(resticRepo.repository())
 
-            MainActivity.instance.observeConfig(viewLifecycleOwner) { _ ->
+            backup.observeConfig(viewLifecycleOwner) { _ ->
                 resticRepo.snapshots().handle { snapshots, throwable ->
                     requireActivity().runOnUiThread {
                         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
@@ -97,7 +102,7 @@ class RepoFragment : Fragment() {
                     .setTitle(R.string.alert_delete_repo_title)
                     .setMessage(R.string.alert_delete_repo_message)
                     .setPositiveButton(android.R.string.ok) { _, _ ->
-                        MainActivity.instance.configure { config ->
+                        backup.configure { config ->
                             config.copy(repos = config.repos.filterNot { it.base.id == repoId })
                         }
 
@@ -118,6 +123,7 @@ class RepoFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        _backup = null
         _binding = null
     }
 }

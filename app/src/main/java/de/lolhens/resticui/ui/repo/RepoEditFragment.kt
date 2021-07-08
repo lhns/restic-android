@@ -5,7 +5,7 @@ import android.os.Bundle
 import android.view.*
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import de.lolhens.resticui.MainActivity
+import de.lolhens.resticui.Backup
 import de.lolhens.resticui.R
 import de.lolhens.resticui.config.*
 import de.lolhens.resticui.databinding.FragmentRepoEditBinding
@@ -17,6 +17,9 @@ class RepoEditFragment : Fragment() {
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
+
+    private var _backup: Backup? = null
+    private val backup get() = _backup!!
 
     private lateinit var _repoId: RepoConfigId
     private val repoId: RepoConfigId get() = _repoId
@@ -31,8 +34,10 @@ class RepoEditFragment : Fragment() {
 
         setHasOptionsMenu(true)
 
+        _backup = Backup.instance(requireContext())
+
         _repoId = (requireActivity() as RepoActivity).repoId
-        val repo = MainActivity.instance.config.repos.find { it.base.id == repoId }
+        val repo = backup.config.repos.find { it.base.id == repoId }
 
         if (repo != null) {
             binding.editRepoName.setText(repo.base.name)
@@ -79,7 +84,7 @@ class RepoEditFragment : Fragment() {
                     )
 
                     fun saveRepo() {
-                        MainActivity.instance.configure { config ->
+                        backup.configure { config ->
                             config.copy(repos = config.repos.filterNot { it.base.id == repoId }
                                 .plus(repo))
                         }
@@ -91,7 +96,7 @@ class RepoEditFragment : Fragment() {
 
                     Toast.makeText(context, R.string.text_saving, Toast.LENGTH_SHORT).show()
 
-                    val resticRepo = repo.repo(MainActivity.instance.restic)
+                    val resticRepo = repo.repo(backup.restic)
                     resticRepo.stats().handle { _, throwable ->
                         if (throwable == null) {
                             saveRepo()
@@ -135,6 +140,7 @@ class RepoEditFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        _backup = null
         _binding = null
     }
 }
