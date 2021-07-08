@@ -8,6 +8,16 @@ This project makes [Restic](https://restic.net) easy to use on Android.
 
 It also makes use of [termux/proot](https://github.com/termux/proot) to run the Restic linux binaries on android.
 
+## Screenshots
+![](https://raw.githubusercontent.com/LolHens/restic-android/main/screenshots/repos.png)
+![](https://raw.githubusercontent.com/LolHens/restic-android/main/screenshots/repo-edit.png)
+![](https://raw.githubusercontent.com/LolHens/restic-android/main/screenshots/repo.png)
+![](https://raw.githubusercontent.com/LolHens/restic-android/main/screenshots/folders.png)
+![](https://raw.githubusercontent.com/LolHens/restic-android/main/screenshots/folder-edit.png)
+![](https://raw.githubusercontent.com/LolHens/restic-android/main/screenshots/folder.png)
+![](https://raw.githubusercontent.com/LolHens/restic-android/main/screenshots/snapshot.png)
+![](https://raw.githubusercontent.com/LolHens/restic-android/main/screenshots/about.png)
+
 ## Notice
 See the file called NOTICE.
 
