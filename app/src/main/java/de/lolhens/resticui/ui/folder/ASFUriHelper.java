@@ -27,13 +27,17 @@ public class ASFUriHelper {
 
                 // TODO handle non-primary volumes
             } else if (isDownloadsDocument(uri)) { // DownloadsProvider
-                final String id = DocumentsContract.getDocumentId(uri);
-                final Uri contentUri = ContentUris.withAppendedId(
-                        Uri.parse("content://downloads/public_downloads"),
-                        Long.parseLong(id)
-                );
+                try {
+                    final Uri contentUri = ContentUris.withAppendedId(
+                            Uri.parse("content://downloads/public_downloads"),
+                            Long.parseLong(DocumentsContract.getDocumentId(uri))
+                    );
 
-                return getDataColumn(context, contentUri, null, null);
+                    return getDataColumn(context, contentUri, null, null);
+                } catch (NumberFormatException ignored) {
+                    return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
+                }
+
             } else if (isMediaDocument(uri)) { // MediaProvider
                 final String docId = DocumentsContract.getDocumentId(uri);
                 final String[] split = docId.split(":");

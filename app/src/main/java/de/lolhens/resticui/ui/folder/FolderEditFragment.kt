@@ -62,13 +62,18 @@ class FolderEditFragment : Fragment() {
         val directoryPicker =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 val uri = result.data!!.data!!
-                val path = ASFUriHelper.getPath(
-                    requireContext(),
-                    DocumentsContract.buildDocumentUriUsingTree(
-                        uri,
-                        DocumentsContract.getTreeDocumentId(uri)
+                val path =
+                    FileUtil.getFullPathFromTreeUri(
+                        requireContext(),
+                        uri
+                    ) ?: ASFUriHelper.getPath(
+                        requireContext(),
+                        DocumentsContract.buildDocumentUriUsingTree(
+                            uri,
+                            DocumentsContract.getTreeDocumentId(uri)
+                        )
                     )
-                )
+
                 binding.editFolder.setText(path)
             }
 
