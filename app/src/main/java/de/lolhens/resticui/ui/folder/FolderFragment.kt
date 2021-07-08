@@ -96,8 +96,6 @@ class FolderFragment : Fragment() {
 
             val activeBackup = backup.activeBackup(folderId)
             activeBackup.observe(viewLifecycleOwner) { backup ->
-                println(backup)
-
                 binding.progressBackupDetails.visibility =
                     if (backup.isStarting()) VISIBLE else GONE
 
