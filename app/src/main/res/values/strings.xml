@@ -10,6 +10,7 @@
     <string name="text_snapshot">Snapshot</string>
     <string name="text_schedule">Schedule</string>
     <string name="text_saving">Saving…</string>
+    <string name="text_backup_service">Backup Service</string>
     <string name="button_add">Add</string>
     <string name="button_delete">Delete</string>
     <string name="button_edit">Edit</string>
@@ -31,5 +32,6 @@
     <string name="alert_delete_snapshot_message">Do you want to delete this Snapshot?</string>
     <string name="notification_channel_backup">Restic Backup</string>
     <string name="notification_backup_title">Restic Backup</string>
-    <string name="notification_backup_message">Backup in Progress…</string>
+    <string name="notification_backup_progress_message">Backup in Progress…</string>
+    <string name="notification_backup_done_message">Backup Finished!</string>
 </resources>

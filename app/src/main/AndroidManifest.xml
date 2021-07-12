@@ -3,7 +3,9 @@
     package="de.lolhens.resticui">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
@@ -31,6 +33,11 @@
         <activity
             android:name=".ui.snapshot.SnapshotActivity"
             android:label="@string/text_snapshot" />
+
+        <service
+            android:name=".BackupService"
+            android:label="@string/text_backup_service"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 
 </manifest>

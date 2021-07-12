@@ -47,6 +47,8 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
         }
+
+        BackupService.schedule(applicationContext)
     }
 
     override fun onRequestPermissionsResult(

@@ -1,5 +1,6 @@
 package de.lolhens.resticui.restic
 
+import android.bluetooth.BluetoothAdapter
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -13,6 +14,10 @@ abstract class ResticRepo(
         private val format = Json { ignoreUnknownKeys = true }
 
         private val filterJson = { line: String -> line.startsWith("{") || line.startsWith("[") }
+
+        val hostname: String by lazy {
+            BluetoothAdapter.getDefaultAdapter().name
+        }
     }
 
     abstract fun repository(): String
@@ -55,9 +60,12 @@ abstract class ResticRepo(
             format.decodeFromString<ResticStats>(json)
         }
 
-    fun snapshots(): CompletableFuture<List<ResticSnapshot>> =
+    fun snapshots(hostname: String? = null): CompletableFuture<List<ResticSnapshot>> =
         restic(
-            listOf("--json", "snapshots"),
+            listOf("--json", "snapshots").plus(
+                if (hostname != null) listOf("--host", hostname)
+                else emptyList()
+            ),
             filterOut = filterJson
         ).thenApply { (out, _) ->
             val json = out[0]
@@ -88,12 +96,13 @@ abstract class ResticRepo(
         }
 
     fun backup(
+        hostname: String,
         path: File,
         onProgress: (ResticBackupProgress) -> Unit,
         cancel: CompletableFuture<Unit>? = null
     ): CompletableFuture<ResticBackupSummary> =
         restic(
-            listOf("--json", "backup", path.absolutePath),
+            listOf("--json", "backup", "--host", hostname, path.absolutePath),
             filterOut = { line ->
                 val isJson = filterJson(line)
                 if (isJson && line.contains("\"message_type\":\"status\"")) {

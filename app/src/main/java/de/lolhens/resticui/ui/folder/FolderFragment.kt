@@ -11,6 +11,7 @@ import de.lolhens.resticui.Backup
 import de.lolhens.resticui.R
 import de.lolhens.resticui.config.FolderConfigId
 import de.lolhens.resticui.databinding.FragmentFolderBinding
+import de.lolhens.resticui.restic.ResticRepo
 import de.lolhens.resticui.restic.ResticSnapshotId
 import de.lolhens.resticui.ui.snapshot.SnapshotActivity
 import java.time.format.DateTimeFormatter
@@ -66,11 +67,10 @@ class FolderFragment : Fragment() {
                     else "Last Backup on ${folder.lastBackup.format(formatter)}"
                 )
 
-                resticRepo.snapshots().handle { snapshots, throwable ->
+                resticRepo.snapshots(ResticRepo.hostname).handle { snapshots, throwable ->
                     requireActivity().runOnUiThread {
                         binding.progressFolderSnapshots.visibility = GONE
 
-                        // TODO: filter hostname
                         val snapshots =
                             snapshots?.filter { it.paths.contains(folder.path) }?.reversed()
                                 ?: emptyList()
@@ -88,7 +88,7 @@ class FolderFragment : Fragment() {
                                 else throwable
 
                             binding.textError.setText(throwable.message)
-                            binding.textError.visibility = View.VISIBLE
+                            binding.textError.visibility = VISIBLE
                         }
                     }
                 }

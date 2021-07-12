@@ -11,10 +11,7 @@ import de.lolhens.resticui.config.Config
 import de.lolhens.resticui.config.ConfigManager
 import de.lolhens.resticui.config.FolderConfig
 import de.lolhens.resticui.config.FolderConfigId
-import de.lolhens.resticui.restic.Restic
-import de.lolhens.resticui.restic.ResticBackupProgress
-import de.lolhens.resticui.restic.ResticException
-import de.lolhens.resticui.restic.ResticStorage
+import de.lolhens.resticui.restic.*
 import java.time.ZonedDateTime
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
@@ -56,20 +53,35 @@ class Backup private constructor(context: Context) {
     private fun backupProgressNotification(
         context: Context,
         activeBackup: ActiveBackup,
-        progress: ResticBackupProgress?
+        progress: ResticBackupProgress?,
+        doneNotification: Boolean = false
     ) {
-        if (progress == null) {
-            notificationManager(context).cancel(activeBackup.notificationId)
-        } else {
-            notificationManager(context).notify(
-                activeBackup.notificationId,
-                NotificationCompat.Builder(context, notificationChannelId)
-                    .setContentTitle(context.resources.getString(R.string.notification_backup_title))
-                    .setContentTitle("${context.resources.getString(R.string.notification_backup_message)} ${progress.percentDoneString()}")
-                    .setSmallIcon(R.drawable.outline_cloud_24)
-                    .setProgress(100, progress.percentDone100().roundToInt(), false)
-                    .build()
-            )
+        when {
+            progress != null -> {
+                notificationManager(context).notify(
+                    activeBackup.notificationId,
+                    NotificationCompat.Builder(context, notificationChannelId)
+                        .setContentTitle(context.resources.getString(R.string.notification_backup_title))
+                        .setContentTitle("${context.resources.getString(R.string.notification_backup_progress_message)} ${progress.percentDoneString()}")
+                        .setSmallIcon(R.drawable.outline_cloud_24)
+                        .setProgress(100, progress.percentDone100().roundToInt(), false)
+                        .setOngoing(true)
+                        .build()
+                )
+            }
+            doneNotification -> {
+                notificationManager(context).notify(
+                    activeBackup.notificationId,
+                    NotificationCompat.Builder(context, notificationChannelId)
+                        .setContentTitle(context.resources.getString(R.string.notification_backup_title))
+                        .setContentTitle(context.resources.getString(R.string.notification_backup_done_message))
+                        .setSmallIcon(R.drawable.outline_cloud_done_24)
+                        .build()
+                )
+            }
+            else -> {
+                notificationManager(context).cancel(activeBackup.notificationId)
+            }
         }
     }
 
@@ -129,6 +141,7 @@ class Backup private constructor(context: Context) {
         backupProgressNotification(context, activeBackup, ResticBackupProgress.zero())
 
         resticRepo.backup(
+            ResticRepo.hostname,
             folder.path,
             { progress ->
                 activeBackupLiveData.postValue(activeBackupLiveData.value!!.copy(progress = progress))
@@ -166,7 +179,7 @@ class Backup private constructor(context: Context) {
                 )
             )
 
-            backupProgressNotification(context, activeBackup, null)
+            backupProgressNotification(context, activeBackup, null, doneNotification = true)
 
             if (callback != null) callback()
         }
