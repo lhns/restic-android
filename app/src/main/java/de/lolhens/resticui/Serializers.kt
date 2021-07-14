@@ -8,6 +8,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import java.io.File
 import java.net.URI
+import java.time.Duration
 import java.time.ZonedDateTime
 
 object ZonedDateTimeSerializer : KSerializer<ZonedDateTime> {
@@ -19,6 +20,17 @@ object ZonedDateTimeSerializer : KSerializer<ZonedDateTime> {
 
     override fun deserialize(decoder: Decoder): ZonedDateTime =
         ZonedDateTime.parse(decoder.decodeString())
+}
+
+object DurationSerializer : KSerializer<Duration> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor((Duration::class).simpleName!!, PrimitiveKind.LONG)
+
+    override fun serialize(encoder: Encoder, value: Duration) =
+        encoder.encodeLong(value.toHours())
+
+    override fun deserialize(decoder: Decoder): Duration =
+        Duration.ofHours(decoder.decodeLong())
 }
 
 object FileSerializer : KSerializer<File> {

@@ -3,6 +3,8 @@ package de.lolhens.resticui.ui.snapshot
 import android.app.AlertDialog
 import android.os.Bundle
 import android.view.*
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import androidx.fragment.app.Fragment
 import de.lolhens.resticui.Backup
 import de.lolhens.resticui.R
@@ -19,7 +21,6 @@ class SnapshotFragment : Fragment() {
 
     private var _backup: Backup? = null
     private val backup get() = _backup!!
-
 
     private lateinit var _repoId: RepoConfigId
     private val repoId: RepoConfigId get() = _repoId
@@ -43,7 +44,29 @@ class SnapshotFragment : Fragment() {
         _repoId = activity.repoId
         _snapshotId = activity.snapshotId
 
-        binding.textSnapshotId.setText(snapshotId.toString())
+        binding.textSnapshotId.text = snapshotId.short
+        binding.textSnapshotIdLong.text = snapshotId.id
+
+        val repo = backup.config.repos.find { it.base.id == repoId }
+
+        if (repo != null) {
+            val resticRepo = repo.repo(backup.restic)
+
+            resticRepo.cat(snapshotId).handle { snapshot, throwable ->
+                requireActivity().runOnUiThread {
+                    binding.progressSnapshot.visibility = GONE
+
+                    if (snapshot != null) {
+                        binding.textTime.text =
+                            "Created on ${snapshot.time.format(de.lolhens.resticui.ui.Formatters.dateTime)}"
+                        binding.textHostname.text = snapshot.hostname
+                        binding.textPath.text = snapshot.paths[0].path
+                    } else {
+                        throwable?.printStackTrace()
+                    }
+                }
+            }
+        }
 
         return root
     }
@@ -63,17 +86,22 @@ class SnapshotFragment : Fragment() {
                         val repo = backup.config.repos.find { it.base.id == repoId }
                         if (repo != null) {
                             val resticRepo = repo.repo(backup.restic)
-                            resticRepo.forget(listOf(snapshotId)).handle { _, throwable ->
-                                if (throwable == null) {
-                                    backup.configure { config ->
-                                        config
-                                    }
 
-                                    requireActivity().finish()
-                                } else {
-                                    throwable.printStackTrace()
+                            item.isEnabled = false
+                            binding.progressSnapshot.visibility = VISIBLE
+
+                            resticRepo.forget(listOf(snapshotId), prune = true)
+                                .handle { _, throwable ->
+                                    if (throwable == null) {
+                                        backup.configure { config ->
+                                            config
+                                        }
+
+                                        requireActivity().finish()
+                                    } else {
+                                        throwable.printStackTrace()
+                                    }
                                 }
-                            }
                         }
                     }
                     .setNegativeButton(android.R.string.cancel) { _, _ -> }

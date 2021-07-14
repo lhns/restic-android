@@ -27,7 +27,7 @@ class BackupService : JobService() {
                 //builder.setMinimumLatency(2 * 60 * 1000L)
                 //builder.setOverrideDeadline(3 * 60 * 1000L)
                 builder.setPersisted(true)
-                builder.setPeriodic(2 * 60 * 1000L)
+                builder.setPeriodic(15 * 60 * 1000L, 30 * 1000L)
 
                 //builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED)
                 //builder.setRequiresCharging(true)
@@ -48,9 +48,14 @@ class BackupService : JobService() {
                     val folder = folders.first()
                     fun next() = nextFolder(folders.drop(1), callback)
 
-                    val started = backup.backup(context, folder) {
-                        next()
-                    }
+                    val started =
+                        folder.schedule.lowercase() != "manual" && backup.backup(
+                            context,
+                            folder,
+                            removeOld = true
+                        ) {
+                            next()
+                        }
                     if (!started) {
                         next()
                     }

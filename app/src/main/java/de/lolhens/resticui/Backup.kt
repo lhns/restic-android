@@ -126,6 +126,7 @@ class Backup private constructor(context: Context) {
     fun backup(
         context: Context,
         folder: FolderConfig,
+        removeOld: Boolean,
         callback: (() -> Unit)? = null
     ): Boolean {
         val repo = folder.repo(config) ?: return false
@@ -181,7 +182,25 @@ class Backup private constructor(context: Context) {
 
             backupProgressNotification(context, activeBackup, null, doneNotification = true)
 
-            if (callback != null) callback()
+            fun removeOldBackups(callback: () -> Unit) {
+                if (removeOld && throwable == null && (folder.keepLast != null || folder.keepWithin != null)) {
+                    resticRepo.forget(
+                        folder.keepLast,
+                        folder.keepWithin,
+                        prune = false // TODO: prune
+                    ).handle { _, _ ->
+                        callback()
+                    }
+                } else {
+                    callback()
+                }
+            }
+
+            removeOldBackups {
+                resticRepo.unlock().handle { _, _ ->
+                    if (callback != null) callback()
+                }
+            }
         }
 
         return true

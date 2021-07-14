@@ -47,11 +47,11 @@ class RepoFragment : Fragment() {
         val repo = backup.config.repos.find { it.base.id == repoId }
 
         if (repo != null) {
-            binding.textRepoName.setText(repo.base.name)
+            binding.textRepoName.text = repo.base.name
 
             val resticRepo = repo.repo(backup.restic)
 
-            binding.textRepoUrl.setText(resticRepo.repository())
+            binding.textRepoUrl.text = resticRepo.repository()
 
             backup.observeConfig(viewLifecycleOwner) { _ ->
                 resticRepo.snapshots().handle { snapshots, throwable ->
@@ -74,7 +74,7 @@ class RepoFragment : Fragment() {
                                 if (throwable is CompletionException && throwable.cause != null) throwable.cause!!
                                 else throwable
 
-                            binding.textError.setText(throwable.message)
+                            binding.textError.text = throwable.message
                             binding.textError.visibility = VISIBLE
                         }
                     }

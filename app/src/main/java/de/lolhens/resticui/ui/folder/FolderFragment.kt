@@ -13,8 +13,8 @@ import de.lolhens.resticui.config.FolderConfigId
 import de.lolhens.resticui.databinding.FragmentFolderBinding
 import de.lolhens.resticui.restic.ResticRepo
 import de.lolhens.resticui.restic.ResticSnapshotId
+import de.lolhens.resticui.ui.Formatters
 import de.lolhens.resticui.ui.snapshot.SnapshotActivity
-import java.time.format.DateTimeFormatter
 import java.util.concurrent.CompletionException
 import kotlin.math.roundToInt
 
@@ -51,21 +51,29 @@ class FolderFragment : Fragment() {
         val repo = folder?.repo(config)
 
         if (folder != null && repo != null) {
-            binding.textRepo.setText(repo.base.name)
-            binding.textFolder.setText(folder.path.path)
-            binding.textSchedule.setText(folder.schedule)
+            binding.textRepo.text = repo.base.name
+            binding.textFolder.text = folder.path.path
+            binding.textSchedule.text = folder.schedule
+            binding.textRetain.text = listOf(
+                "Everything",
+                listOf(
+                    if (folder.keepLast == null) "" else "in last ${folder.keepLast}",
+                    if (folder.keepWithin == null) "" else "within ${
+                        Formatters.durationDaysHours(
+                            folder.keepWithin
+                        )
+                    }"
+                ).filter { it.isNotEmpty() }.joinToString(" and ")
+            ).filter { it.isNotEmpty() }.joinToString(" ")
 
             val resticRepo = repo.repo(backup.restic)
 
             backup.observeConfig(viewLifecycleOwner) { config ->
                 val folder = config.folders.find { it.id == folderId }!!
 
-                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-
-                binding.textLastBackup.setText(
+                binding.textLastBackup.text =
                     if (folder.lastBackup == null) ""
-                    else "Last Backup on ${folder.lastBackup.format(formatter)}"
-                )
+                    else "Last Backup on ${folder.lastBackup.format(Formatters.dateTime)}"
 
                 resticRepo.snapshots(ResticRepo.hostname).handle { snapshots, throwable ->
                     requireActivity().runOnUiThread {
@@ -79,7 +87,7 @@ class FolderFragment : Fragment() {
                         binding.listFolderSnapshots.adapter = ArrayAdapter(
                             requireContext(),
                             android.R.layout.simple_list_item_1,
-                            snapshots.map { "${it.time.format(formatter)} ${it.id.short}" }
+                            snapshots.map { "${it.time.format(Formatters.dateTime)} ${it.id.short}" }
                         )
 
                         if (throwable != null) {
@@ -87,7 +95,7 @@ class FolderFragment : Fragment() {
                                 if (throwable is CompletionException && throwable.cause != null) throwable.cause!!
                                 else throwable
 
-                            binding.textError.setText(throwable.message)
+                            binding.textError.text = throwable.message
                             binding.textError.visibility = VISIBLE
                         }
                     }
@@ -124,13 +132,14 @@ class FolderFragment : Fragment() {
                             ${backup.progress.bytesDoneString()}${if (backup.progress.total_bytes != null) " / ${backup.progress.totalBytesString()}" else ""}
                         """.trimIndent()
 
-                        binding.textBackupDetails.setText(details)
+                        binding.textBackupDetails.text = details
                     }
                 } else {
                     binding.progressBackup.setProgress(0, true)
 
                     if (backup.error != null) {
-                        binding.textBackupError.setText(backup.error)
+                        System.err.println(backup.error)
+                        binding.textBackupError.text = backup.error
                     } else {
                         val details = """
                             Backup completed in ${backup.progress!!.timeElapsedString()}!
@@ -138,7 +147,7 @@ class FolderFragment : Fragment() {
                             ${backup.progress.bytesDoneString()}${if (backup.progress.total_bytes != null) " / ${backup.progress.totalBytesString()}" else ""}
                         """.trimIndent()
 
-                        binding.textBackupDetails.setText(details)
+                        binding.textBackupDetails.text = details
                     }
                 }
             }
@@ -149,7 +158,7 @@ class FolderFragment : Fragment() {
             }
 
             binding.buttonBackup.setOnClickListener { _ ->
-                backup.backup(requireContext(), folder)
+                backup.backup(requireContext(), folder, removeOld = false)
             }
 
             binding.buttonBackupCancel.setOnClickListener { _ ->

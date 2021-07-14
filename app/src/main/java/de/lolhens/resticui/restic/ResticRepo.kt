@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothAdapter
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.time.Duration
 import java.util.concurrent.CompletableFuture
 
 abstract class ResticRepo(
@@ -53,10 +54,9 @@ abstract class ResticRepo(
 
     fun stats(): CompletableFuture<ResticStats> =
         restic(
-            listOf("--json", "stats"),
-            filterOut = filterJson
+            listOf("--json", "stats")
         ).thenApply { (out, _) ->
-            val json = out[0]
+            val json = out.joinToString("\n")
             format.decodeFromString<ResticStats>(json)
         }
 
@@ -65,16 +65,51 @@ abstract class ResticRepo(
             listOf("--json", "snapshots").plus(
                 if (hostname != null) listOf("--host", hostname)
                 else emptyList()
-            ),
-            filterOut = filterJson
+            )
         ).thenApply { (out, _) ->
-            val json = out[0]
+            val json = out.joinToString("\n")
             format.decodeFromString<List<ResticSnapshot>>(json)
         }
 
-    fun forget(snapshotIds: List<ResticSnapshotId>): CompletableFuture<String> =
-        restic(listOf("forget").plus(snapshotIds.map { it.id })).thenApply { (out, _) ->
+    fun cat(snapshotId: ResticSnapshotId): CompletableFuture<ResticSnapshot> =
+        restic(
+            listOf("--json", "cat", "snapshot", snapshotId.id)
+        ).thenApply { (out, _) ->
+            val json = "{\"id\": \"${snapshotId.id}\",${out.joinToString("\n").drop(1)}"
+            format.decodeFromString<ResticSnapshot>(json)
+        }
+
+    fun forget(snapshotIds: List<ResticSnapshotId>, prune: Boolean): CompletableFuture<String> =
+        restic(
+            listOf("forget").plus(
+                if (prune) listOf("--prune")
+                else emptyList()
+            ).plus(snapshotIds.map { it.id })
+        ).thenApply { (out, _) ->
             out.joinToString("\n")
+        }
+
+    fun forget(
+        keepLast: Int?,
+        keepWithin: Duration?,
+        prune: Boolean
+    ): CompletableFuture<List<ResticSnapshot>> =
+        restic(
+            listOf("forget").plus(
+                if (prune) listOf("--prune")
+                else emptyList()
+            ).plus(
+                if (keepLast != null) listOf("--keep-last", keepLast.toString())
+                else emptyList()
+            ).plus(
+                if (keepWithin != null) {
+                    val hours = keepWithin.toHours()
+                    listOf("--keep-within", "${hours / 24}d${hours % 24}h")
+                } else emptyList()
+            )
+        ).thenApply { (out, _) ->
+            val json = out.joinToString("\n")
+            format.decodeFromString<List<ResticForgetResult>>(json).flatMap { it.remove }
         }
 
     fun unlock(): CompletableFuture<String> =
@@ -85,7 +120,6 @@ abstract class ResticRepo(
     fun ls(snapshotId: ResticSnapshotId): CompletableFuture<Pair<ResticSnapshot, List<ResticFile>>> =
         restic(
             listOf("--json", "ls", snapshotId.id),
-            filterOut = filterJson
         ).thenApply { (out, _) ->
             val snapshotJson = out[0]
             val filesJson = out.drop(1)
@@ -104,17 +138,16 @@ abstract class ResticRepo(
         restic(
             listOf("--json", "backup", "--host", hostname, path.absolutePath),
             filterOut = { line ->
-                val isJson = filterJson(line)
-                if (isJson && line.contains("\"message_type\":\"status\"")) {
+                val isStatus = line.contains("\"message_type\":\"status\"")
+                if (isStatus) {
                     val progress = format.decodeFromString<ResticBackupProgress>(line)
                     onProgress(progress)
-                    false
-                } else
-                    isJson
+                }
+                !isStatus
             },
             cancel = cancel
         ).thenApply { (out, _) ->
-            val json = out[0]
+            val json = out.joinToString("\n")
             format.decodeFromString<ResticBackupSummary>(json)
         }
 }

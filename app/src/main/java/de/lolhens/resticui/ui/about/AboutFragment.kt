@@ -34,11 +34,11 @@ class AboutFragment : Fragment() {
         val restic = backup.restic
 
         val textView: TextView = binding.textResticVersion
-        textView.setText(aboutText())
+        textView.text = aboutText()
         restic.version()
             .thenAccept { resticVersion ->
                 requireActivity().runOnUiThread {
-                    textView.setText(aboutText(resticVersion))
+                    textView.text = aboutText(resticVersion)
                 }
             }
             .exceptionally {

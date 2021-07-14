@@ -9,6 +9,7 @@
     <string name="text_snapshots">Snapshots</string>
     <string name="text_snapshot">Snapshot</string>
     <string name="text_schedule">Schedule</string>
+    <string name="text_retain">Retain</string>
     <string name="text_saving">Saving…</string>
     <string name="text_backup_service">Backup Service</string>
     <string name="button_add">Add</string>

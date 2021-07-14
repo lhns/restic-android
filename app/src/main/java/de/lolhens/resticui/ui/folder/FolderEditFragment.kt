@@ -12,9 +12,31 @@ import de.lolhens.resticui.R
 import de.lolhens.resticui.config.FolderConfig
 import de.lolhens.resticui.config.FolderConfigId
 import de.lolhens.resticui.databinding.FragmentFolderEditBinding
+import de.lolhens.resticui.ui.Formatters
 import java.io.File
+import java.time.Duration
 
 class FolderEditFragment : Fragment() {
+    companion object {
+        val schedules = arrayOf("Manual", "Hourly", "Daily", "Weekly", "Monthly")
+
+        val retainProfiles = arrayOf(
+            -1,
+            1,
+            2,
+            6,
+            1 * 24,
+            3 * 24,
+            5 * 24,
+            10 * 24,
+            30 * 24,
+            60 * 24,
+            90 * 24,
+            120 * 24,
+            365 * 24
+        )
+    }
+
     private var _binding: FragmentFolderEditBinding? = null
 
     // This property is only valid between onCreateView and
@@ -50,14 +72,23 @@ class FolderEditFragment : Fragment() {
             backup.config.repos.map { it.base.name }
         )
 
-        val schedules = arrayOf("Hourly", "Daily", "Weekly", "Monthly")
-
         binding.spinnerSchedule.adapter = ArrayAdapter(
             requireContext(),
             android.R.layout.simple_spinner_dropdown_item,
             schedules
         )
         binding.spinnerSchedule.setSelection(1)
+
+        binding.spinnerRetainWithin.adapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_spinner_dropdown_item,
+            retainProfiles.map { hours ->
+                if (hours == -1) "Always" else Formatters.durationDaysHours(
+                    Duration.ofHours(hours.toLong())
+                )
+            }
+        )
+        binding.spinnerRetainWithin.setSelection(0)
 
         val directoryPicker =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -87,6 +118,10 @@ class FolderEditFragment : Fragment() {
             binding.spinnerRepo.setSelection(backup.config.repos.indexOfFirst { it.base.id == folderRepo.base.id })
             binding.editFolder.setText(folder.path.path)
             binding.spinnerSchedule.setSelection(schedules.indexOfFirst { it == folder.schedule })
+            val scheduleIndex = retainProfiles.indexOfFirst {
+                it.toLong() == folder.keepWithin?.toHours()
+            }
+            binding.spinnerRetainWithin.setSelection(if (scheduleIndex == -1) 0 else scheduleIndex)
         }
 
         return root
@@ -105,16 +140,23 @@ class FolderEditFragment : Fragment() {
                     backup.config.repos.find { it.base.name == selectedRepoName }
                 val path = binding.editFolder.text.toString()
                 val schedule = binding.spinnerSchedule.selectedItem.toString()
+                val keepWithin =
+                    Duration.ofHours(retainProfiles[binding.spinnerRetainWithin.selectedItemPosition].toLong())
 
                 if (
                     repo != null &&
-                    path.length > 0
+                    path.isNotEmpty()
                 ) {
+                    val prevFolder = backup.config.folders.find { it.id == folderId }
+
                     val folder = FolderConfig(
                         folderId,
                         repo.base.id,
                         File(path),
-                        schedule
+                        schedule,
+                        prevFolder?.keepLast,
+                        keepWithin,
+                        prevFolder?.lastBackup
                     )
 
                     backup.configure { config ->
