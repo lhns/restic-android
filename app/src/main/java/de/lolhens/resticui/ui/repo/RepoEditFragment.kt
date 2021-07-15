@@ -3,6 +3,8 @@ package de.lolhens.resticui.ui.repo
 import android.app.AlertDialog
 import android.os.Bundle
 import android.view.*
+import android.view.View.INVISIBLE
+import android.view.View.VISIBLE
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import de.lolhens.resticui.Backup
@@ -96,21 +98,36 @@ class RepoEditFragment : Fragment() {
 
                     Toast.makeText(context, R.string.text_saving, Toast.LENGTH_SHORT).show()
 
+                    item.isEnabled = false
+                    binding.progressRepoSave.visibility = VISIBLE
+
                     val resticRepo = repo.repo(backup.restic)
                     resticRepo.stats().handle { _, throwable ->
                         if (throwable == null) {
                             saveRepo()
                         } else {
                             throwable.printStackTrace()
+
+                            item.isEnabled = true
+                            binding.progressRepoSave.visibility = INVISIBLE
+
                             requireActivity().runOnUiThread {
                                 AlertDialog.Builder(requireActivity())
                                     .setTitle(R.string.alert_init_repo_title)
                                     .setMessage(R.string.alert_init_repo_message)
                                     .setPositiveButton(android.R.string.ok) { _, _ ->
+                                        item.isEnabled = false
+                                        binding.progressRepoSave.visibility = VISIBLE
+
                                         resticRepo.init().handle { _, throwable ->
                                             if (throwable == null) {
                                                 saveRepo()
                                             } else {
+                                                throwable.printStackTrace()
+
+                                                item.isEnabled = true
+                                                binding.progressRepoSave.visibility = INVISIBLE
+
                                                 requireActivity().runOnUiThread {
                                                     AlertDialog.Builder(requireActivity())
                                                         .setTitle(R.string.alert_save_repo_title)

@@ -88,7 +88,7 @@ class SnapshotFragment : Fragment() {
                             val resticRepo = repo.repo(backup.restic)
 
                             item.isEnabled = false
-                            binding.progressSnapshot.visibility = VISIBLE
+                            binding.progressSnapshotDelete.visibility = VISIBLE
 
                             resticRepo.forget(listOf(snapshotId), prune = true)
                                 .handle { _, throwable ->
