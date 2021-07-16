@@ -10,6 +10,11 @@ This project makes [Restic](https://restic.net) easy to use on Android.
 
 It also makes use of [termux/proot](https://github.com/termux/proot) to run the Restic linux binaries on android.
 
+### Disclaimer
+This project is **not** an official app made by the restic team.
+
+Please report any issues on the [restic-android issue tracker](https://github.com/LolHens/restic-android/issues).
+
 ## Screenshots
 ![](https://raw.githubusercontent.com/LolHens/restic-android/main/screenshots/repos.png)
 ![](https://raw.githubusercontent.com/LolHens/restic-android/main/screenshots/repo-edit.png)
