@@ -37,13 +37,13 @@ class MainActivity : AppCompatActivity() {
         )
         navView.setupWithNavController(navController)
 
-        val backup = Backup.instance(applicationContext)
+        val backupManager = BackupManager.instance(applicationContext)
 
         if (!Permissions.granted(applicationContext, Manifest.permission.READ_EXTERNAL_STORAGE)) {
             Permissions.request(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                 .thenApply { granted ->
                     if (granted) {
-                        backup.initRestic(applicationContext)
+                        backupManager.initRestic(applicationContext)
                     }
                 }
         }

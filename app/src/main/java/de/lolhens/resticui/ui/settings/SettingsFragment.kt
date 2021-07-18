@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import de.lolhens.resticui.Backup
+import de.lolhens.resticui.BackupManager
 import de.lolhens.resticui.databinding.FragmentSettingsBinding
 
 class SettingsFragment : Fragment() {
@@ -15,8 +15,8 @@ class SettingsFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
-    private var _backup: Backup? = null
-    private val backup get() = _backup!!
+    private var _backupManager: BackupManager? = null
+    private val backupManager get() = _backupManager!!
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -26,11 +26,11 @@ class SettingsFragment : Fragment() {
         _binding = FragmentSettingsBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        _backup = Backup.instance(requireContext())
+        _backupManager = BackupManager.instance(requireContext())
 
         binding.buttonUnlock.setOnClickListener {
-            backup.config.repos.forEach { repo ->
-                val resticRepo = repo.repo(backup.restic)
+            backupManager.config.repos.forEach { repo ->
+                val resticRepo = repo.repo(backupManager.restic)
                 resticRepo.unlock()
                     .handle { message, throwable ->
                         if (throwable != null) {
@@ -43,7 +43,7 @@ class SettingsFragment : Fragment() {
         }
 
         binding.buttonCleanup.setOnClickListener {
-            backup.restic.restic(listOf("cache", "--cleanup"))
+            backupManager.restic.restic(listOf("cache", "--cleanup"))
                 .handle { message, throwable ->
                     if (throwable != null) {
                         throwable.printStackTrace()
@@ -58,7 +58,7 @@ class SettingsFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _backup = null
+        _backupManager = null
         _binding = null
     }
 }

@@ -7,7 +7,7 @@ import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
-import de.lolhens.resticui.Backup
+import de.lolhens.resticui.BackupManager
 import de.lolhens.resticui.R
 import de.lolhens.resticui.config.FolderConfigId
 import de.lolhens.resticui.databinding.FragmentFolderBinding
@@ -25,8 +25,8 @@ class FolderFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
-    private var _backup: Backup? = null
-    private val backup get() = _backup!!
+    private var _backupManager: BackupManager? = null
+    private val backupManager get() = _backupManager!!
 
     private lateinit var _folderId: FolderConfigId
     private val folderId: FolderConfigId get() = _folderId
@@ -43,10 +43,10 @@ class FolderFragment : Fragment() {
 
         setHasOptionsMenu(true)
 
-        _backup = Backup.instance(requireContext())
+        _backupManager = BackupManager.instance(requireContext())
 
         _folderId = (requireActivity() as FolderActivity).folderId
-        val config = backup.config
+        val config = backupManager.config
         val folder = config.folders.find { it.id == folderId }
         val repo = folder?.repo(config)
 
@@ -66,14 +66,16 @@ class FolderFragment : Fragment() {
                 ).filter { it.isNotEmpty() }.joinToString(" and ")
             ).filter { it.isNotEmpty() }.joinToString(" ")
 
-            val resticRepo = repo.repo(backup.restic)
+            val resticRepo = repo.repo(backupManager.restic)
 
-            backup.observeConfig(viewLifecycleOwner) { config ->
+            backupManager.observeConfig(viewLifecycleOwner) { config ->
                 val folder = config.folders.find { it.id == folderId }!!
 
+                val lastSuccessfulBackup = folder.lastBackup(filterSuccessful = true)
+
                 binding.textLastBackup.text =
-                    if (folder.lastBackup == null) ""
-                    else "Last Backup on ${folder.lastBackup.format(Formatters.dateTime)}"
+                    if (lastSuccessfulBackup == null) ""
+                    else "Last Backup on ${Formatters.dateTime(lastSuccessfulBackup.timestamp)}"
 
                 resticRepo.snapshots(ResticRepo.hostname).handle { snapshots, throwable ->
                     requireActivity().runOnUiThread {
@@ -87,7 +89,7 @@ class FolderFragment : Fragment() {
                         binding.listFolderSnapshots.adapter = ArrayAdapter(
                             requireContext(),
                             android.R.layout.simple_list_item_1,
-                            snapshots.map { "${it.time.format(Formatters.dateTime)} ${it.id.short}" }
+                            snapshots.map { "${Formatters.dateTime(it.time)} ${it.id.short}" }
                         )
 
                         if (throwable != null) {
@@ -102,7 +104,7 @@ class FolderFragment : Fragment() {
                 }
             }
 
-            val activeBackup = backup.activeBackup(folderId)
+            val activeBackup = backupManager.activeBackup(folderId)
             activeBackup.observe(viewLifecycleOwner) { backup ->
                 binding.progressBackupDetails.visibility =
                     if (backup.isStarting()) VISIBLE else GONE
@@ -114,12 +116,12 @@ class FolderFragment : Fragment() {
                     if (backup.error != null) VISIBLE else GONE
 
                 binding.buttonBackup.visibility =
-                    if (!backup.isInProgress()) VISIBLE else GONE
+                    if (!backup.inProgress) VISIBLE else GONE
 
                 binding.buttonBackupCancel.visibility =
-                    if (backup.isInProgress()) VISIBLE else GONE
+                    if (backup.inProgress) VISIBLE else GONE
 
-                if (backup.isInProgress()) {
+                if (backup.inProgress) {
                     if (backup.progress != null) {
                         binding.progressBackup.setProgress(
                             (backup.progress.percentDone100()).roundToInt(),
@@ -158,7 +160,12 @@ class FolderFragment : Fragment() {
             }
 
             binding.buttonBackup.setOnClickListener { _ ->
-                backup.backup(requireContext(), folder, removeOld = false)
+                backupManager.backup(
+                    requireContext(),
+                    folder,
+                    removeOld = false,
+                    scheduled = false
+                )
             }
 
             binding.buttonBackupCancel.setOnClickListener { _ ->
@@ -188,7 +195,7 @@ class FolderFragment : Fragment() {
                     .setTitle(R.string.alert_delete_folder_title)
                     .setMessage(R.string.alert_delete_folder_message)
                     .setPositiveButton(android.R.string.ok) { _, _ ->
-                        backup.configure { config ->
+                        backupManager.configure { config ->
                             config.copy(folders = config.folders.filterNot { it.id == folderId })
                         }
 
@@ -209,7 +216,7 @@ class FolderFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _backup = null
+        _backupManager = null
         _binding = null
     }
 }

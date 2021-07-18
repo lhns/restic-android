@@ -7,21 +7,19 @@ import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.observe
-import de.lolhens.resticui.config.Config
-import de.lolhens.resticui.config.ConfigManager
-import de.lolhens.resticui.config.FolderConfig
-import de.lolhens.resticui.config.FolderConfigId
+import de.lolhens.resticui.config.*
 import de.lolhens.resticui.restic.*
+import java.time.Duration
 import java.time.ZonedDateTime
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
 import kotlin.math.roundToInt
 
-class Backup private constructor(context: Context) {
+class BackupManager private constructor(context: Context) {
     companion object {
-        private var _instance: Backup? = null
+        private var _instance: BackupManager? = null
 
-        fun instance(context: Context): Backup = _instance ?: Backup(context)
+        fun instance(context: Context): BackupManager = _instance ?: BackupManager(context)
     }
 
     private fun notificationManager(context: Context) =
@@ -111,6 +109,11 @@ class Backup private constructor(context: Context) {
     private val activeBackupsLock = Object()
     private var _activeBackups: Map<FolderConfigId, MutableLiveData<ActiveBackup>> = emptyMap()
 
+    fun currentlyActiveBackups(): List<ActiveBackup> =
+        synchronized(activeBackupsLock) {
+            _activeBackups.values.map { it.value }.filterNotNull()
+        }
+
     fun activeBackup(folderId: FolderConfigId): MutableLiveData<ActiveBackup> =
         synchronized(activeBackupsLock) {
             val liveData = _activeBackups[folderId]
@@ -127,14 +130,15 @@ class Backup private constructor(context: Context) {
         context: Context,
         folder: FolderConfig,
         removeOld: Boolean,
+        scheduled: Boolean,
         callback: (() -> Unit)? = null
-    ): Boolean {
-        val repo = folder.repo(config) ?: return false
+    ): ActiveBackup? {
+        val repo = folder.repo(config) ?: return null
 
         val resticRepo = repo.repo(restic)
 
         val activeBackupLiveData = activeBackup(folder.id)
-        if (activeBackupLiveData.value?.isInProgress() == true) return false
+        if (activeBackupLiveData.value?.inProgress == true) return null
 
         val activeBackup = ActiveBackup.create()
         activeBackupLiveData.postValue(activeBackup)
@@ -145,7 +149,7 @@ class Backup private constructor(context: Context) {
             ResticRepo.hostname,
             folder.path,
             { progress ->
-                activeBackupLiveData.postValue(activeBackupLiveData.value!!.copy(progress = progress))
+                activeBackupLiveData.postValue(activeBackupLiveData.value!!.progress(progress))
                 backupProgressNotification(context, activeBackup, progress)
             },
             activeBackup.cancelFuture
@@ -155,29 +159,33 @@ class Backup private constructor(context: Context) {
                 else throwable
             }
 
-            val error =
-                if (throwable == null) {
-                    val now = ZonedDateTime.now()
+            val cancelled = throwable is ResticException && throwable.cancelled
 
-                    configure { config ->
-                        config.copy(folders = config.folders.map { folder ->
-                            if (folder.id == folder.id) folder.copy(lastBackup = now)
-                            else folder
-                        })
-                    }
-
+            val errorMessage =
+                if (throwable == null || cancelled) {
                     null
-                } else if (throwable is ResticException && throwable.cancelled) {
-                    ""
                 } else {
                     throwable.message
                 }
 
+            val historyEntry = BackupHistoryEntry(
+                timestamp = ZonedDateTime.now(),
+                duration = Duration.ZERO,
+                scheduled = scheduled,
+                cancelled = cancelled,
+                snapshotId = summary?.snapshot_id,
+                errorMessage = errorMessage
+            )
+
+            configure { config ->
+                config.copy(folders = config.folders.map { folder ->
+                    if (folder.id == folder.id) folder.plusHistoryEntry(historyEntry)
+                    else folder
+                })
+            }
+
             activeBackupLiveData.postValue(
-                activeBackupLiveData.value!!.copy(
-                    summary = summary,
-                    error = error
-                )
+                activeBackupLiveData.value!!.finish(summary, errorMessage)
             )
 
             backupProgressNotification(context, activeBackup, null, doneNotification = true)
@@ -187,7 +195,7 @@ class Backup private constructor(context: Context) {
                     resticRepo.forget(
                         folder.keepLast,
                         folder.keepWithin,
-                        prune = false // TODO: prune
+                        prune = true
                     ).handle { _, _ ->
                         callback()
                     }
@@ -203,6 +211,6 @@ class Backup private constructor(context: Context) {
             }
         }
 
-        return true
+        return activeBackup
     }
 }

@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import de.lolhens.resticui.Backup
+import de.lolhens.resticui.BackupManager
 import de.lolhens.resticui.databinding.FragmentAboutBinding
 
 class AboutFragment : Fragment() {
@@ -16,8 +16,8 @@ class AboutFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
-    private var _backup: Backup? = null
-    private val backup get() = _backup!!
+    private var _backupManager: BackupManager? = null
+    private val backupManager get() = _backupManager!!
 
     private fun aboutText(resticVersion: String? = null) = resticVersion ?: ""
 
@@ -29,9 +29,9 @@ class AboutFragment : Fragment() {
         _binding = FragmentAboutBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        _backup = Backup.instance(requireContext())
+        _backupManager = BackupManager.instance(requireContext())
 
-        val restic = backup.restic
+        val restic = backupManager.restic
 
         val textView: TextView = binding.textResticVersion
         textView.text = aboutText()
@@ -51,7 +51,7 @@ class AboutFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _backup = null
+        _backupManager = null
         _binding = null
     }
 }

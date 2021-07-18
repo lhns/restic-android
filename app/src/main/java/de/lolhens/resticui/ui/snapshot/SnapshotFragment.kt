@@ -6,11 +6,12 @@ import android.view.*
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import androidx.fragment.app.Fragment
-import de.lolhens.resticui.Backup
+import de.lolhens.resticui.BackupManager
 import de.lolhens.resticui.R
 import de.lolhens.resticui.config.RepoConfigId
 import de.lolhens.resticui.databinding.FragmentSnapshotBinding
 import de.lolhens.resticui.restic.ResticSnapshotId
+import de.lolhens.resticui.ui.Formatters
 
 class SnapshotFragment : Fragment() {
     private var _binding: FragmentSnapshotBinding? = null
@@ -19,8 +20,8 @@ class SnapshotFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
-    private var _backup: Backup? = null
-    private val backup get() = _backup!!
+    private var _backupManager: BackupManager? = null
+    private val backupManager get() = _backupManager!!
 
     private lateinit var _repoId: RepoConfigId
     private val repoId: RepoConfigId get() = _repoId
@@ -38,7 +39,7 @@ class SnapshotFragment : Fragment() {
 
         setHasOptionsMenu(true)
 
-        _backup = Backup.instance(requireContext())
+        _backupManager = BackupManager.instance(requireContext())
 
         val activity = requireActivity() as SnapshotActivity
         _repoId = activity.repoId
@@ -47,18 +48,17 @@ class SnapshotFragment : Fragment() {
         binding.textSnapshotId.text = snapshotId.short
         binding.textSnapshotIdLong.text = snapshotId.id
 
-        val repo = backup.config.repos.find { it.base.id == repoId }
+        val repo = backupManager.config.repos.find { it.base.id == repoId }
 
         if (repo != null) {
-            val resticRepo = repo.repo(backup.restic)
+            val resticRepo = repo.repo(backupManager.restic)
 
             resticRepo.cat(snapshotId).handle { snapshot, throwable ->
                 requireActivity().runOnUiThread {
                     binding.progressSnapshot.visibility = GONE
 
                     if (snapshot != null) {
-                        binding.textTime.text =
-                            "Created on ${snapshot.time.format(de.lolhens.resticui.ui.Formatters.dateTime)}"
+                        binding.textTime.text = "Created on ${Formatters.dateTime(snapshot.time)}"
                         binding.textHostname.text = snapshot.hostname
                         binding.textPath.text = snapshot.paths[0].path
                     } else {
@@ -83,9 +83,9 @@ class SnapshotFragment : Fragment() {
                     .setTitle(R.string.alert_delete_snapshot_title)
                     .setMessage(R.string.alert_delete_snapshot_message)
                     .setPositiveButton(android.R.string.ok) { _, _ ->
-                        val repo = backup.config.repos.find { it.base.id == repoId }
+                        val repo = backupManager.config.repos.find { it.base.id == repoId }
                         if (repo != null) {
-                            val resticRepo = repo.repo(backup.restic)
+                            val resticRepo = repo.repo(backupManager.restic)
 
                             item.isEnabled = false
                             binding.progressSnapshotDelete.visibility = VISIBLE
@@ -93,7 +93,7 @@ class SnapshotFragment : Fragment() {
                             resticRepo.forget(listOf(snapshotId), prune = true)
                                 .handle { _, throwable ->
                                     if (throwable == null) {
-                                        backup.configure { config ->
+                                        backupManager.configure { config ->
                                             config
                                         }
 
@@ -113,7 +113,7 @@ class SnapshotFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _backup = null
+        _backupManager = null
         _binding = null
     }
 }

@@ -16,5 +16,5 @@ data class ResticBackupSummary(
     val total_files_processed: Long,
     val total_bytes_processed: Long,
     val total_duration: Double,
-    val snapshot_id: String
+    val snapshot_id: ResticSnapshotId
 )

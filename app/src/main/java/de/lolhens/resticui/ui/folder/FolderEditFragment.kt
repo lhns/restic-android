@@ -7,7 +7,7 @@ import android.view.*
 import android.widget.ArrayAdapter
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
-import de.lolhens.resticui.Backup
+import de.lolhens.resticui.BackupManager
 import de.lolhens.resticui.R
 import de.lolhens.resticui.config.FolderConfig
 import de.lolhens.resticui.config.FolderConfigId
@@ -18,7 +18,13 @@ import java.time.Duration
 
 class FolderEditFragment : Fragment() {
     companion object {
-        val schedules = arrayOf("Manual", "Hourly", "Daily", "Weekly", "Monthly")
+        val schedules = arrayOf(
+            Pair("Manual", -1),
+            Pair("Hourly", 60),
+            Pair("Daily", 24 * 60),
+            Pair("Weekly", 7 * 24 * 60),
+            Pair("Monthly", 30 * 24 * 60)
+        )
 
         val retainProfiles = arrayOf(
             -1,
@@ -43,8 +49,8 @@ class FolderEditFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
-    private var _backup: Backup? = null
-    private val backup get() = _backup!!
+    private var _backupManager: BackupManager? = null
+    private val backupManager get() = _backupManager!!
 
     private lateinit var _folderId: FolderConfigId
     private val folderId: FolderConfigId get() = _folderId
@@ -59,23 +65,23 @@ class FolderEditFragment : Fragment() {
 
         setHasOptionsMenu(true)
 
-        _backup = Backup.instance(requireContext())
+        _backupManager = BackupManager.instance(requireContext())
 
         _folderId = (requireActivity() as FolderActivity).folderId
-        val config = backup.config
+        val config = backupManager.config
         val folder = config.folders.find { it.id == folderId }
         val folderRepo = folder?.repo(config)
 
         binding.spinnerRepo.adapter = ArrayAdapter(
             requireContext(),
             android.R.layout.simple_spinner_dropdown_item,
-            backup.config.repos.map { it.base.name }
+            backupManager.config.repos.map { it.base.name }
         )
 
         binding.spinnerSchedule.adapter = ArrayAdapter(
             requireContext(),
             android.R.layout.simple_spinner_dropdown_item,
-            schedules
+            schedules.map { it.first }
         )
         binding.spinnerSchedule.setSelection(1)
 
@@ -115,9 +121,9 @@ class FolderEditFragment : Fragment() {
         }
 
         if (folder != null && folderRepo != null) {
-            binding.spinnerRepo.setSelection(backup.config.repos.indexOfFirst { it.base.id == folderRepo.base.id })
+            binding.spinnerRepo.setSelection(backupManager.config.repos.indexOfFirst { it.base.id == folderRepo.base.id })
             binding.editFolder.setText(folder.path.path)
-            binding.spinnerSchedule.setSelection(schedules.indexOfFirst { it == folder.schedule })
+            binding.spinnerSchedule.setSelection(schedules.indexOfFirst { it.first == folder.schedule })
             val scheduleIndex = retainProfiles.indexOfFirst {
                 it.toLong() == folder.keepWithin?.toHours()
             }
@@ -137,17 +143,18 @@ class FolderEditFragment : Fragment() {
             R.id.action_done -> {
                 val selectedRepoName = binding.spinnerRepo.selectedItem.toString()
                 val repo =
-                    backup.config.repos.find { it.base.name == selectedRepoName }
+                    backupManager.config.repos.find { it.base.name == selectedRepoName }
                 val path = binding.editFolder.text.toString()
                 val schedule = binding.spinnerSchedule.selectedItem.toString()
                 val keepWithin =
-                    Duration.ofHours(retainProfiles[binding.spinnerRetainWithin.selectedItemPosition].toLong())
+                    if (retainProfiles[binding.spinnerRetainWithin.selectedItemPosition] < 0) null
+                    else Duration.ofHours(retainProfiles[binding.spinnerRetainWithin.selectedItemPosition].toLong())
 
                 if (
                     repo != null &&
                     path.isNotEmpty()
                 ) {
-                    val prevFolder = backup.config.folders.find { it.id == folderId }
+                    val prevFolder = backupManager.config.folders.find { it.id == folderId }
 
                     val folder = FolderConfig(
                         folderId,
@@ -156,10 +163,10 @@ class FolderEditFragment : Fragment() {
                         schedule,
                         prevFolder?.keepLast,
                         keepWithin,
-                        prevFolder?.lastBackup
+                        prevFolder?.history ?: emptyList()
                     )
 
-                    backup.configure { config ->
+                    backupManager.configure { config ->
                         config.copy(folders = config.folders.filterNot { it.id == folderId }
                             .plus(folder))
                     }
@@ -176,7 +183,7 @@ class FolderEditFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _backup = null
+        _backupManager = null
         _binding = null
     }
 }

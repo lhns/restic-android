@@ -7,6 +7,7 @@ import android.app.job.JobService
 import android.content.ComponentName
 import android.content.Context
 import de.lolhens.resticui.config.FolderConfig
+import java.time.ZonedDateTime
 
 class BackupService : JobService() {
     companion object {
@@ -39,7 +40,7 @@ class BackupService : JobService() {
         }
 
         fun startBackup(context: Context, callback: (() -> Unit)? = null) {
-            val backup = Backup.instance(context)
+            val backupManager = BackupManager.instance(context)
 
             fun nextFolder(folders: List<FolderConfig>, callback: (() -> Unit)? = null) {
                 if (folders.isEmpty()) {
@@ -48,21 +49,24 @@ class BackupService : JobService() {
                     val folder = folders.first()
                     fun next() = nextFolder(folders.drop(1), callback)
 
+                    val now = ZonedDateTime.now()
+
                     val started =
-                        folder.schedule.lowercase() != "manual" && backup.backup(
+                        folder.shouldBackup(now) && backupManager.backup(
                             context,
                             folder,
-                            removeOld = true
+                            removeOld = true,
+                            scheduled = true
                         ) {
                             next()
-                        }
+                        } != null
                     if (!started) {
                         next()
                     }
                 }
             }
 
-            nextFolder(backup.config.folders, callback)
+            nextFolder(backupManager.config.folders, callback)
         }
     }
 
@@ -74,5 +78,9 @@ class BackupService : JobService() {
         return true
     }
 
-    override fun onStopJob(params: JobParameters?): Boolean = true
+    override fun onStopJob(params: JobParameters?): Boolean {
+        val backupManager = BackupManager.instance(applicationContext)
+        backupManager.currentlyActiveBackups().forEach { it.cancel() }
+        return true
+    }
 }

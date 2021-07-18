@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
-import de.lolhens.resticui.Backup
+import de.lolhens.resticui.BackupManager
 import de.lolhens.resticui.config.FolderConfigId
 import de.lolhens.resticui.databinding.FragmentFoldersBinding
 import de.lolhens.resticui.ui.folder.FolderActivity
@@ -18,8 +18,8 @@ class FoldersFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
-    private var _backup: Backup? = null
-    private val backup get() = _backup!!
+    private var _backupManager: BackupManager? = null
+    private val backupManager get() = _backupManager!!
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -29,9 +29,9 @@ class FoldersFragment : Fragment() {
         _binding = FragmentFoldersBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        _backup = Backup.instance(requireContext())
+        _backupManager = BackupManager.instance(requireContext())
 
-        backup.observeConfig(viewLifecycleOwner) { config ->
+        backupManager.observeConfig(viewLifecycleOwner) { config ->
             binding.listFolders.adapter = ArrayAdapter(
                 requireContext(),
                 android.R.layout.simple_list_item_1,
@@ -44,7 +44,7 @@ class FoldersFragment : Fragment() {
         }
 
         binding.listFolders.setOnItemClickListener { _, _, position, _ ->
-            val folder = backup.config.folders.get(position)
+            val folder = backupManager.config.folders.get(position)
             FolderActivity.start(this, false, folder.id)
         }
 
@@ -53,7 +53,7 @@ class FoldersFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _backup = null
+        _backupManager = null
         _binding = null
     }
 }
