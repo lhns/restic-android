@@ -31,6 +31,7 @@ Please report any issues on the [restic-android issue tracker](https://github.co
 - More granular Backup Schedules and Cleanup Policies
 - Improve Error messages
 - Backup Rules (only backup when charging or only use wifi etc.)
+- Figure out how to do storage access on Android 11
 
 ## Screenshots
 ![](https://raw.githubusercontent.com/LolHens/restic-android/main/screenshots/repos.png)
