@@ -26,6 +26,7 @@ Please report any issues on the [restic-android issue tracker](https://github.co
 - Progress Notification
 
 ## Roadmap
+- Clean up WIP Code
 - Support more protocols
 - More granular Backup Schedules and Cleanup Policies
 - Improve Error messages
