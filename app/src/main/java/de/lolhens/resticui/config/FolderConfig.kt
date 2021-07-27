@@ -28,7 +28,7 @@ data class FolderConfig(
         newHistory =
             if (newHistory.any { it.successful }) newHistory
             else newHistory.plus(history.filter { it.scheduled }.take(1))
-        return copy(history = newHistory.plus(entry).sortedBy { it.timestamp })
+        return copy(history = newHistory.plus(entry).sortedByDescending { it.timestamp })
     }
 
     fun lastBackup(
