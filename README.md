@@ -26,6 +26,7 @@ Please report any issues on the [restic-android issue tracker](https://github.co
 - Progress Notification
 
 ## Roadmap
+- Support more protocols
 - More granular Backup Schedules and Cleanup Policies
 - Improve Error messages
 - Backup Rules (only backup when charging or only use wifi etc.)
