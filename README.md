@@ -1,4 +1,4 @@
-# restic-android
+# restic-android (Unofficial)
 
 [![Test Workflow](https://github.com/LolHens/restic-android/workflows/build/badge.svg)](https://github.com/LolHens/restic-android/actions?query=workflow%3Abuild)
 [![Release Notes](https://img.shields.io/github/release/LolHens/restic-android.svg?maxAge=3600)](https://github.com/LolHens/restic-android/releases/latest)
@@ -6,14 +6,29 @@
 
 ![](https://raw.githubusercontent.com/LolHens/restic-android/main/screenshots/icon.png)
 
-This project makes [Restic](https://restic.net) easy to use on Android.
+This project aims to make Backups on Android easy and fast using [Restic](https://restic.net).
 
 It also makes use of [termux/proot](https://github.com/termux/proot) to run the Restic linux binaries on android.
+
+Currently this project is still unfinished and contributions are welcome!
 
 ### Disclaimer
 This project is **not** an official app made by the restic team.
 
 Please report any issues on the [restic-android issue tracker](https://github.com/LolHens/restic-android/issues).
+
+## Features
+- Manage Restic Repositories (S3 is currently the only supported protocol)
+- Manage Restic Snapshots
+- Manage Folders for Backup
+- Configure Schedules for automatic Backups
+- Configure Cleanup Policies for Folders
+- Progress Notification
+
+## Roadmap
+- More granular Backup Schedules and Cleanup Policies
+- Improve Error messages
+- Backup Rules (only backup when charging or only use wifi etc.)
 
 ## Screenshots
 ![](https://raw.githubusercontent.com/LolHens/restic-android/main/screenshots/repos.png)
