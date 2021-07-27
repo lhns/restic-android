@@ -10,7 +10,7 @@ This project aims to make Backups on Android easy and fast using [Restic](https:
 
 It also makes use of [termux/proot](https://github.com/termux/proot) to run the Restic linux binaries on android.
 
-Currently this project is still unfinished and contributions are welcome!
+This project is still in a very early state and contributions are welcome!
 
 ### Disclaimer
 This project is **not** an official app made by the restic team.
