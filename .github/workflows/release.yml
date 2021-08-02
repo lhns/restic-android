@@ -17,9 +17,9 @@ jobs:
         run: chmod +x gradlew
       - name: Keystore
         run: echo "${{ secrets.RELEASE_STORE_BASE64}}" | base64 -d > keystore.jks
+      - run: export RELEASE_STORE_FILE="$(readlink -f keystore.jks)"
       - name: Build with Gradle
         env:
-          RELEASE_STORE_FILE: "keystore.jks"
           RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
           RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
