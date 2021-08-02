@@ -1,5 +1,6 @@
 package de.lolhens.resticui.restic
 
+import android.system.Os
 import java.io.File
 import java.io.InputStream
 import java.net.InetAddress
@@ -9,10 +10,26 @@ import java.util.concurrent.CompletableFuture
 class Restic(
     private val storage: ResticStorage
 ) {
-    private val proot = storage.lib().resolve("proot")
-    private val restic = storage.lib().resolve("restic")
-    private val loader = storage.lib().resolve("loader")
-    private val loader32 = storage.lib().resolve("loader32")
+    private fun executable(name: String) =
+        storage.lib().resolve("libdata_$name.so")
+
+    private val lib = storage.cache().resolve("lib")
+
+    private fun initLib(name: String) {
+        lib.mkdirs()
+        val linkFile = lib.resolve(name)
+        linkFile.delete()
+        Os.symlink(executable(name).absolutePath, linkFile.absolutePath)
+    }
+
+    init {
+        initLib("libtalloc.so.2")
+    }
+
+    private val proot = executable("proot")
+    private val restic = executable("restic")
+    private val loader = executable("loader")
+    private val loader32 = executable("loader32")
 
     private fun binds(hostsFile: File): List<Pair<String, String>> = listOf(
         Pair("/system", "/system"),
@@ -36,7 +53,7 @@ class Restic(
     private fun vars(): List<Pair<String, String>> = listOf(
         Pair("PATH", "/system/bin"),
         Pair("TMPDIR", storage.cache().absolutePath),
-        Pair("LD_LIBRARY_PATH", storage.lib().absolutePath),
+        Pair("LD_LIBRARY_PATH", lib.absolutePath),
         Pair("PROOT_LOADER", loader.absolutePath),
         Pair("PROOT_LOADER_32", loader32.absolutePath),
         Pair("PROOT_TMP_DIR", storage.cache().absolutePath),
