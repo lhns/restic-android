@@ -12,6 +12,7 @@ import de.lolhens.resticui.R
 import de.lolhens.resticui.config.*
 import de.lolhens.resticui.databinding.FragmentRepoEditBinding
 import java.net.URI
+import java.util.concurrent.CompletionException
 
 class RepoEditFragment : Fragment() {
     private var _binding: FragmentRepoEditBinding? = null
@@ -103,15 +104,16 @@ class RepoEditFragment : Fragment() {
 
                     val resticRepo = repo.repo(backupManager.restic)
                     resticRepo.stats().handle { _, throwable ->
-                        if (throwable == null) {
-                            saveRepo()
-                        } else {
-                            throwable.printStackTrace()
+                        requireActivity().runOnUiThread {
+                            if (throwable == null) {
+                                saveRepo()
+                            } else {
+                                System.err.println("Error saving repository!")
+                                throwable.printStackTrace()
 
-                            item.isEnabled = true
-                            binding.progressRepoSave.visibility = INVISIBLE
+                                item.isEnabled = true
+                                binding.progressRepoSave.visibility = INVISIBLE
 
-                            requireActivity().runOnUiThread {
                                 AlertDialog.Builder(requireActivity())
                                     .setTitle(R.string.alert_init_repo_title)
                                     .setMessage(R.string.alert_init_repo_message)
@@ -120,18 +122,32 @@ class RepoEditFragment : Fragment() {
                                         binding.progressRepoSave.visibility = VISIBLE
 
                                         resticRepo.init().handle { _, throwable ->
-                                            if (throwable == null) {
-                                                saveRepo()
-                                            } else {
-                                                throwable.printStackTrace()
+                                            requireActivity().runOnUiThread {
+                                                if (throwable == null) {
+                                                    saveRepo()
+                                                } else {
+                                                    val throwable =
+                                                        if (throwable is CompletionException && throwable.cause != null) throwable.cause!!
+                                                        else throwable
 
-                                                item.isEnabled = true
-                                                binding.progressRepoSave.visibility = INVISIBLE
+                                                    throwable.printStackTrace()
 
-                                                requireActivity().runOnUiThread {
+                                                    item.isEnabled = true
+                                                    binding.progressRepoSave.visibility = INVISIBLE
+
                                                     AlertDialog.Builder(requireActivity())
                                                         .setTitle(R.string.alert_save_repo_title)
-                                                        .setMessage(R.string.alert_save_repo_message)
+                                                        .setMessage(
+                                                            "${
+                                                                requireContext().resources.getString(
+                                                                    R.string.alert_save_repo_message
+                                                                )
+                                                            }\n\n${throwable.message}\n\n${
+                                                                requireContext().resources.getString(
+                                                                    R.string.alert_save_repo_question
+                                                                )
+                                                            }"
+                                                        )
                                                         .setPositiveButton(android.R.string.ok) { _, _ ->
                                                             saveRepo()
                                                         }

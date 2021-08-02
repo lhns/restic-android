@@ -92,7 +92,9 @@ class BackupManager private constructor(context: Context) {
                 notificationManager(context).notify(
                     activeBackup.notificationId,
                     NotificationCompat.Builder(context, notificationChannelId)
-                        .setContentTitle("${context.resources.getString(R.string.notification_backup_failed_message)}\n${activeBackup.error}")
+                        .setContentTitle(
+                            "${context.resources.getString(R.string.notification_backup_failed_message)}\n${activeBackup.error}"
+                        )
                         .setSmallIcon(R.drawable.outline_cloud_error_24)
                         .build()
                 )
