@@ -9,10 +9,13 @@ import java.util.concurrent.CompletableFuture
 class Restic(
     private val storage: ResticStorage
 ) {
-    private val proot = storage.lib().resolve("proot")
-    private val restic = storage.lib().resolve("restic")
-    private val loader = storage.lib().resolve("loader")
-    private val loader32 = storage.lib().resolve("loader32")
+    private fun executable(name: String) =
+        storage.lib().resolve("libdata_$name.so")
+
+    private val proot = executable("proot")
+    private val restic = executable("restic")
+    private val loader = executable("loader")
+    private val loader32 = executable("loader32")
 
     private fun binds(hostsFile: File): List<Pair<String, String>> = listOf(
         Pair("/system", "/system"),
