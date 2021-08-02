@@ -81,6 +81,11 @@ class BackupService : JobService() {
     override fun onStopJob(params: JobParameters?): Boolean {
         val backupManager = BackupManager.instance(applicationContext)
         backupManager.currentlyActiveBackups().forEach { it.cancel() }
+
+        // Wait for all backups to be cancelled to make sure the notification is dismissed
+        while (backupManager.currentlyActiveBackups().isNotEmpty()) {
+            Thread.sleep(100)
+        }
         return true
     }
 }

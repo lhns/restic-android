@@ -19,7 +19,7 @@ android {
 
     signingConfigs {
         release {
-            storeFile file(System.env.RELEASE_STORE_FILE)
+            storeFile file(System.env.RELEASE_STORE_FILE ?: "null")
             storePassword System.env.RELEASE_STORE_PASSWORD
             keyAlias System.env.RELEASE_KEY_ALIAS
             keyPassword System.env.RELEASE_KEY_PASSWORD

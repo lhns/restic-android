@@ -35,4 +35,5 @@
     <string name="notification_backup_title">Restic Backup</string>
     <string name="notification_backup_progress_message">Backup in Progress…</string>
     <string name="notification_backup_done_message">Backup Finished!</string>
+    <string name="notification_backup_failed_message">Backup Failed!</string>
 </resources>

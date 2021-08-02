@@ -142,14 +142,18 @@ class FolderFragment : Fragment() {
                     if (backup.error != null) {
                         System.err.println(backup.error)
                         binding.textBackupError.text = backup.error
+                    } else if (backup.summary == null) {
+
                     } else {
-                        val details = """
-                            Backup completed in ${backup.progress!!.timeElapsedString()}!
+                        val details = if (backup.progress == null) null else {
+                            """
+                            Backup finished after ${backup.progress.timeElapsedString()}!
                             ${backup.progress.files_done}${if (backup.progress.total_files != null) " / ${backup.progress.total_files}" else ""} Files
                             ${backup.progress.bytesDoneString()}${if (backup.progress.total_bytes != null) " / ${backup.progress.totalBytesString()}" else ""}
-                        """.trimIndent()
+                            """.trimIndent()
+                        }
 
-                        binding.textBackupDetails.text = details
+                        binding.textBackupDetails.text = details ?: "Backup finished!"
                     }
                 }
             }

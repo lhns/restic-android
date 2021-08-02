@@ -8,7 +8,10 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.observe
 import de.lolhens.resticui.config.*
-import de.lolhens.resticui.restic.*
+import de.lolhens.resticui.restic.Restic
+import de.lolhens.resticui.restic.ResticException
+import de.lolhens.resticui.restic.ResticRepo
+import de.lolhens.resticui.restic.ResticStorage
 import java.time.Duration
 import java.time.ZonedDateTime
 import java.util.concurrent.CompletableFuture
@@ -48,31 +51,62 @@ class BackupManager private constructor(context: Context) {
 
     val notificationChannelId = "RESTIC_BACKUP_PROGRESS"
 
-    private fun backupProgressNotification(
+    private fun updateNotification(
         context: Context,
         activeBackup: ActiveBackup,
-        progress: ResticBackupProgress?,
-        doneNotification: Boolean = false
+        doneNotification: Boolean = true,
+        errorNotification: Boolean = true
     ) {
         when {
-            progress != null -> {
+            activeBackup.inProgress -> {
+                // TODO: use somewhere
+                val details = if (activeBackup.progress == null) null else {
+                    """
+                    ${activeBackup.progress.files_done}${if (activeBackup.progress.total_files != null) " / ${activeBackup.progress.total_files}" else ""} Files
+                    ${activeBackup.progress.bytesDoneString()}${if (activeBackup.progress.total_bytes != null) " / ${activeBackup.progress.totalBytesString()}" else ""}
+                    """.trimIndent()
+                }
+
+                val progress = activeBackup.progress?.percentDoneString() ?: "0%"
+
                 notificationManager(context).notify(
                     activeBackup.notificationId,
                     NotificationCompat.Builder(context, notificationChannelId)
-                        .setContentTitle(context.resources.getString(R.string.notification_backup_title))
-                        .setContentTitle("${context.resources.getString(R.string.notification_backup_progress_message)} ${progress.percentDoneString()}")
+                        .setSubText(progress)
+                        .setContentTitle("${context.resources.getString(R.string.notification_backup_progress_message)} $progress")
+                        .setContentText(
+                            if (activeBackup.progress == null) null
+                            else "${activeBackup.progress.timeElapsedString()} elapsed"
+                        )
                         .setSmallIcon(R.drawable.outline_cloud_24)
-                        .setProgress(100, progress.percentDone100().roundToInt(), false)
+                        .setProgress(
+                            100,
+                            activeBackup.progress?.percentDone100()?.roundToInt() ?: 0,
+                            activeBackup.isStarting()
+                        )
                         .setOngoing(true)
                         .build()
                 )
             }
-            doneNotification -> {
+            activeBackup.error != null && errorNotification -> {
                 notificationManager(context).notify(
                     activeBackup.notificationId,
                     NotificationCompat.Builder(context, notificationChannelId)
-                        .setContentTitle(context.resources.getString(R.string.notification_backup_title))
+                        .setContentTitle("${context.resources.getString(R.string.notification_backup_failed_message)}\n${activeBackup.error}")
+                        .setSmallIcon(R.drawable.outline_cloud_error_24)
+                        .build()
+                )
+            }
+            activeBackup.summary != null && doneNotification -> {
+                notificationManager(context).notify(
+                    activeBackup.notificationId,
+                    NotificationCompat.Builder(context, notificationChannelId)
+                        .setSubText("100%")
                         .setContentTitle(context.resources.getString(R.string.notification_backup_done_message))
+                        .setContentText(
+                            if (activeBackup.progress == null) null
+                            else "${activeBackup.progress.timeElapsedString()} elapsed"
+                        )
                         .setSmallIcon(R.drawable.outline_cloud_done_24)
                         .build()
                 )
@@ -143,14 +177,15 @@ class BackupManager private constructor(context: Context) {
         val activeBackup = ActiveBackup.create()
         activeBackupLiveData.postValue(activeBackup)
 
-        backupProgressNotification(context, activeBackup, ResticBackupProgress.zero())
+        updateNotification(context, activeBackup)
 
         resticRepo.backup(
             ResticRepo.hostname,
             folder.path,
             { progress ->
-                activeBackupLiveData.postValue(activeBackupLiveData.value!!.progress(progress))
-                backupProgressNotification(context, activeBackup, progress)
+                val activeBackupProgress = activeBackupLiveData.value!!.progress(progress)
+                activeBackupLiveData.postValue(activeBackupProgress)
+                updateNotification(context, activeBackupProgress)
             },
             activeBackup.cancelFuture
         ).handle { summary, throwable ->
@@ -184,11 +219,9 @@ class BackupManager private constructor(context: Context) {
                 })
             }
 
-            activeBackupLiveData.postValue(
-                activeBackupLiveData.value!!.finish(summary, errorMessage)
-            )
-
-            backupProgressNotification(context, activeBackup, null, doneNotification = true)
+            val finishedActiveBackup = activeBackupLiveData.value!!.finish(summary, errorMessage)
+            activeBackupLiveData.postValue(finishedActiveBackup)
+            updateNotification(context, finishedActiveBackup)
 
             fun removeOldBackups(callback: () -> Unit) {
                 if (removeOld && throwable == null && (folder.keepLast != null || folder.keepWithin != null)) {
