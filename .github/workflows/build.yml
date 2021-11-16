@@ -21,7 +21,7 @@ jobs:
         run: chmod +x gradlew
       - name: Keystore
         run: |
-          [ "${{ secrets.RELEASE_STORE_BASE64}}" != "" ] && echo "${{ secrets.RELEASE_STORE_BASE64}}" | base64 -d > keystore.jks
+          [ "${{ secrets.RELEASE_STORE_BASE64}}" == "" ] || echo "${{ secrets.RELEASE_STORE_BASE64}}" | base64 -d > keystore.jks
       - name: Build with Gradle
         env:
           RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
