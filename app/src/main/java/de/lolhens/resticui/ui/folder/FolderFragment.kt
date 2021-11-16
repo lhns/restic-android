@@ -128,32 +128,57 @@ class FolderFragment : Fragment() {
                             true
                         )
 
-                        val details = """
+                        val details =
+                            """
                             ${backup.progress.percentDoneString()} done / ${backup.progress.timeElapsedString()} elapsed
                             ${backup.progress.files_done}${if (backup.progress.total_files != null) " / ${backup.progress.total_files}" else ""} Files
                             ${backup.progress.bytesDoneString()}${if (backup.progress.total_bytes != null) " / ${backup.progress.totalBytesString()}" else ""}
-                        """.trimIndent()
+                            """.trimIndent()
 
                         binding.textBackupDetails.text = details
+                        binding.textBackupDetails.setOnClickListener {
+                            AlertDialog.Builder(context)
+                                .setTitle("Backup Progress")
+                                .setMessage(details)
+                                .setPositiveButton("OK") { dialog, _ ->
+                                    dialog.cancel()
+                                }
+                                .show()
+                        }
                     }
                 } else {
                     binding.progressBackup.setProgress(0, true)
 
-                    if (backup.error != null) {
-                        System.err.println(backup.error)
-                        binding.textBackupError.text = backup.error
-                    } else if (backup.summary == null) {
-
-                    } else {
-                        val details = if (backup.progress == null) null else {
-                            """
-                            Backup finished after ${backup.progress.timeElapsedString()}!
-                            ${backup.progress.files_done}${if (backup.progress.total_files != null) " / ${backup.progress.total_files}" else ""} Files
-                            ${backup.progress.bytesDoneString()}${if (backup.progress.total_bytes != null) " / ${backup.progress.totalBytesString()}" else ""}
-                            """.trimIndent()
+                    when {
+                        backup.error != null -> {
+                            System.err.println(backup.error)
+                            binding.textBackupError.text = backup.error
+                            binding.textBackupError.setOnClickListener {
+                                AlertDialog.Builder(context)
+                                    .setTitle("Backup Error")
+                                    .setMessage(backup.error)
+                                    .setPositiveButton("OK") { dialog, _ ->
+                                        dialog.cancel()
+                                    }
+                                    .show()
+                            }
                         }
+                        backup.summary != null -> {
+                            val details =
+                                if (backup.progress == null) null
+                                else {
+                                    """
+                                    Backup finished after ${backup.progress.timeElapsedString()}!
+                                    ${backup.progress.files_done}${if (backup.progress.total_files != null) " / ${backup.progress.total_files}" else ""} Files
+                                    ${backup.progress.bytesDoneString()}${if (backup.progress.total_bytes != null) " / ${backup.progress.totalBytesString()}" else ""}
+                                    """.trimIndent()
+                                }
 
-                        binding.textBackupDetails.text = details ?: "Backup finished!"
+                            binding.textBackupDetails.text = details ?: "Backup finished!"
+                        }
+                        else -> {
+                            // cancelled
+                        }
                     }
                 }
             }

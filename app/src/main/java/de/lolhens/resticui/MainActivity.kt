@@ -25,15 +25,15 @@ class MainActivity : AppCompatActivity() {
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         setupActionBarWithNavController(
-                navController,
-                AppBarConfiguration(
-                        setOf(
-                                R.id.navigation_folders,
-                                R.id.navigation_repos,
-                                R.id.navigation_settings,
-                                R.id.navigation_about
-                        )
+            navController,
+            AppBarConfiguration(
+                setOf(
+                    R.id.navigation_folders,
+                    R.id.navigation_repos,
+                    R.id.navigation_settings,
+                    R.id.navigation_about
                 )
+            )
         )
         navView.setupWithNavController(navController)
 
@@ -41,22 +41,26 @@ class MainActivity : AppCompatActivity() {
 
         if (!Permissions.hasStoragePermission(applicationContext, write = false)) {
             Permissions.requestStoragePermission(this, write = false)
-                    .thenApply { granted ->
-                        if (granted) {
-                            backupManager.initRestic(applicationContext)
-                        } else {
-                            Toast.makeText(this, "Allow permission for storage access!", Toast.LENGTH_SHORT).show()
-                        }
+                .thenApply { granted ->
+                    if (granted) {
+                        backupManager.initRestic(applicationContext)
+                    } else {
+                        Toast.makeText(
+                            this,
+                            "Allow permission for storage access!",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
+                }
         }
 
         BackupService.schedule(applicationContext)
     }
 
     override fun onRequestPermissionsResult(
-            requestCode: Int,
-            permissions: Array<out String>,
-            grantResults: IntArray
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         Permissions.onRequestPermissionsResult(requestCode)

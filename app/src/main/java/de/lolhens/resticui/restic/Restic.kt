@@ -113,17 +113,15 @@ class Restic(
                     }
                 }
 
-                if (cancel != null) {
-                    cancel.thenRun {
-                        future.completeExceptionally(
-                            ResticException(
-                                0,
-                                emptyList(),
-                                cancelled = true
-                            )
+                cancel?.thenRun {
+                    future.completeExceptionally(
+                        ResticException(
+                            0,
+                            emptyList(),
+                            cancelled = true
                         )
-                        process.destroy()
-                    }
+                    )
+                    process.destroy()
                 }
 
                 future

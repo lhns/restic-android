@@ -17,7 +17,7 @@ abstract class ResticRepo(
         private val filterJson = { line: String -> line.startsWith("{") || line.startsWith("[") }
 
         val hostname: String by lazy {
-            BluetoothAdapter.getDefaultAdapter().name
+            BluetoothAdapter.getDefaultAdapter().name // TODO: handle D/BluetoothAdapter: java.lang.Throwable
         }
     }
 
