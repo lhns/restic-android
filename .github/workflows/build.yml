@@ -32,7 +32,7 @@ jobs:
           if [ -e keystore.jks ]; then
             ./gradlew assembleRelease
           else
-            ./gradlew assemble
+            ./gradlew assembleDebug
           fi
       - uses: actions/upload-artifact@v2
         with:
