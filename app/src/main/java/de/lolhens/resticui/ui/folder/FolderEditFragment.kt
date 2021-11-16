@@ -141,18 +141,20 @@ class FolderEditFragment : Fragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean =
         when (item.itemId) {
             R.id.action_done -> {
-                val selectedRepoName = binding.spinnerRepo.selectedItem.toString()
+                val selectedRepoName = binding.spinnerRepo.selectedItem?.toString()
                 val repo =
-                    backupManager.config.repos.find { it.base.name == selectedRepoName }
+                    if (selectedRepoName == null) null
+                    else backupManager.config.repos.find { it.base.name == selectedRepoName }
                 val path = binding.editFolder.text.toString()
-                val schedule = binding.spinnerSchedule.selectedItem.toString()
+                val schedule = binding.spinnerSchedule.selectedItem?.toString()
                 val keepWithin =
                     if (retainProfiles[binding.spinnerRetainWithin.selectedItemPosition] < 0) null
                     else Duration.ofHours(retainProfiles[binding.spinnerRetainWithin.selectedItemPosition].toLong())
 
                 if (
                     repo != null &&
-                    path.isNotEmpty()
+                    path.isNotEmpty() &&
+                    schedule != null
                 ) {
                     val prevFolder = backupManager.config.folders.find { it.id == folderId }
 
@@ -174,9 +176,11 @@ class FolderEditFragment : Fragment() {
                     FolderActivity.start(this, false, folderId)
 
                     requireActivity().finish()
-                }
 
-                true
+                    true
+                } else {
+                    false
+                }
             }
             else -> super.onOptionsItemSelected(item)
         }
