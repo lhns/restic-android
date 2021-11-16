@@ -191,19 +191,16 @@ class BackupManager private constructor(context: Context) {
             },
             activeBackup.cancelFuture
         ).handle { summary, throwable ->
-            val throwable = if (throwable == null) null else {
-                if (throwable is CompletionException && throwable.cause != null) throwable.cause!!
+            val throwable =
+                if (throwable == null) null
+                else if (throwable is CompletionException && throwable.cause != null) throwable.cause
                 else throwable
-            }
 
             val cancelled = throwable is ResticException && throwable.cancelled
 
             val errorMessage =
-                if (throwable == null || cancelled) {
-                    null
-                } else {
-                    throwable.message
-                }
+                if (throwable == null || cancelled) null
+                else throwable.message
 
             val historyEntry = BackupHistoryEntry(
                 timestamp = ZonedDateTime.now(),

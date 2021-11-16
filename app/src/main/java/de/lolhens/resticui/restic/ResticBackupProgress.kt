@@ -19,17 +19,21 @@ data class ResticBackupProgress(
     fun percentDone100() = percent_done * 100
 
     fun percentDoneString() =
-        (if (percent_done == 0.0) "0"
-        else if (percentDone100() < 0.01) "%.4f".format(percentDone100())
-        else if (percentDone100() < 1) "%.2f".format(percentDone100())
-        else percentDone100().roundToInt().toString()) + "%"
+        (when {
+            percent_done == 0.0 -> "0"
+            percentDone100() < 0.01 -> "%.4f".format(percentDone100())
+            percentDone100() < 1 -> "%.2f".format(percentDone100())
+            else -> percentDone100().roundToInt().toString()
+        }) + "%"
 
     private fun formatBytes(bytes: Long?) =
-        if (bytes == null) null
-        else if (bytes >= 1_000_000_000) "${"%.2f".format(bytes / 10_000_000 / 100.0)} GB"
-        else if (bytes >= 1_000_000) "${"%.2f".format(bytes / 10_000 / 100.0)} MB"
-        else if (bytes >= 1_000) "${"%.2f".format(bytes / 10 / 100.0)} KB"
-        else "$bytes B"
+        when {
+            bytes == null -> null
+            bytes >= 1_000_000_000 -> "${"%.2f".format(bytes / 10_000_000 / 100.0)} GB"
+            bytes >= 1_000_000 -> "${"%.2f".format(bytes / 10_000 / 100.0)} MB"
+            bytes >= 1_000 -> "${"%.2f".format(bytes / 10 / 100.0)} KB"
+            else -> "$bytes B"
+        }
 
     fun totalBytesString() = formatBytes(total_bytes)
     fun bytesDoneString() = formatBytes(bytes_done)

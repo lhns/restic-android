@@ -1,7 +1,7 @@
 package de.lolhens.resticui
 
-import android.Manifest
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -39,11 +39,17 @@ class MainActivity : AppCompatActivity() {
 
         val backupManager = BackupManager.instance(applicationContext)
 
-        if (!Permissions.granted(applicationContext, Manifest.permission.READ_EXTERNAL_STORAGE)) {
-            Permissions.request(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+        if (!Permissions.hasStoragePermission(applicationContext, write = false)) {
+            Permissions.requestStoragePermission(this, write = false)
                 .thenApply { granted ->
                     if (granted) {
                         backupManager.initRestic(applicationContext)
+                    } else {
+                        Toast.makeText(
+                            this,
+                            "Allow permission for storage access!",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
         }
@@ -57,6 +63,6 @@ class MainActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        Permissions.onRequestPermissionsResult(permissions, grantResults)
+        Permissions.onRequestPermissionsResult(requestCode)
     }
 }

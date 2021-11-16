@@ -69,8 +69,8 @@ class RepoEditFragment : Fragment() {
                 val secretAccessKey = binding.editSecretAccessKey.text.toString()
 
                 if (
-                    repoName.length > 0 &&
-                    s3UrlString.length > 0
+                    repoName.isNotEmpty() &&
+                    s3UrlString.isNotEmpty()
                 ) {
                     val repo = RepoConfig(
                         RepoBaseConfig(

@@ -1,6 +1,5 @@
 package de.lolhens.resticui.restic
 
-import android.Manifest
 import android.content.Context
 import android.os.Environment
 import de.lolhens.resticui.Permissions
@@ -15,7 +14,7 @@ interface ResticStorage {
             override fun lib(): File = _lib
             override fun cache(): File = _cache
             override fun storage(): List<File> {
-                if (!Permissions.granted(context, Manifest.permission.READ_EXTERNAL_STORAGE))
+                if (!Permissions.hasStoragePermission(context, write = false))
                     return emptyList()
 
                 val state = Environment.getExternalStorageState()

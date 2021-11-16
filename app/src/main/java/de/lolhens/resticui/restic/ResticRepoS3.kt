@@ -12,7 +12,6 @@ class ResticRepoS3(
     restic,
     password
 ) {
-
     override fun repository(): String = "s3:$s3Url"
 
     override fun hosts(): List<String> = listOf(s3Url.host)
