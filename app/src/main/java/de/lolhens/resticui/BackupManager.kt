@@ -8,10 +8,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.observe
 import de.lolhens.resticui.config.*
-import de.lolhens.resticui.restic.Restic
-import de.lolhens.resticui.restic.ResticException
-import de.lolhens.resticui.restic.ResticRepo
-import de.lolhens.resticui.restic.ResticStorage
+import de.lolhens.resticui.restic.*
 import java.time.Duration
 import java.time.ZonedDateTime
 import java.util.concurrent.CompletableFuture
@@ -46,7 +43,10 @@ class BackupManager private constructor(context: Context) {
     private lateinit var _restic: Restic
     val restic get() = _restic
     fun initRestic(context: Context) {
-        _restic = Restic(ResticStorage.fromContext(context))
+        _restic = Restic(
+            ResticStorage.fromContext(context),
+            ResticNameServers.fromContext(context)
+        )
     }
 
     val notificationChannelId = "RESTIC_BACKUP_PROGRESS"

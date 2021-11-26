@@ -1,4 +1,4 @@
-package de.lolhens.resticui.ui.folder;
+package de.lolhens.resticui.util;
 
 import android.content.ContentUris;
 import android.content.Context;

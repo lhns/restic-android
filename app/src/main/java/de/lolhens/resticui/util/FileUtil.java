@@ -1,4 +1,4 @@
-package de.lolhens.resticui.ui.folder;
+package de.lolhens.resticui.util;
 
 import android.annotation.TargetApi;
 import android.content.Context;
