@@ -4,6 +4,16 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.serialization' version '1.6.0'
 }
 
+def getBuildNumber = { ->
+    System.getenv('CI_BUILD_NUMBER')?.toInteger() ?: 1
+}
+
+def getVersion = { ->
+    def matcher = System.getenv('CI_VERSION') =~ /refs\/tags\/(.*)/
+    if (matcher.find()) matcher.group(1)
+    else "0.0.1-SNAPSHOT"
+}
+
 android {
     compileSdkVersion 30
 
@@ -11,8 +21,8 @@ android {
         applicationId "de.lolhens.resticui"
         minSdkVersion 24
         targetSdkVersion 30
-        versionCode 1
-        versionName "1.0"
+        versionCode getBuildNumber()
+        versionName getVersion()
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

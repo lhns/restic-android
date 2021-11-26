@@ -24,6 +24,8 @@ jobs:
           [ "${{ secrets.RELEASE_STORE_BASE64}}" == "" ] || echo "${{ secrets.RELEASE_STORE_BASE64}}" | base64 -d > keystore.jks
       - name: Build with Gradle
         env:
+          CI_VERSION: ${{ github.ref }}
+          CI_BUILD_NUMBER: ${{ github.run_id }}
           RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
           RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
