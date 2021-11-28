@@ -2,9 +2,10 @@
 
 [![Test Workflow](https://github.com/LolHens/restic-android/workflows/build/badge.svg)](https://github.com/LolHens/restic-android/actions?query=workflow%3Abuild)
 [![Release Notes](https://img.shields.io/github/release/LolHens/restic-android.svg?maxAge=3600)](https://github.com/LolHens/restic-android/releases/latest)
+[![Restic@IoD](https://img.shields.io/endpoint?url=https://apt.izzysoft.de/fdroid/api/v1/shield/de.lolhens.resticui)](https://apt.izzysoft.de/fdroid/index/apk/de.lolhens.resticui)
 [![GNU General Public License, Version 2](https://img.shields.io/github/license/LolHens/restic-android.svg?maxAge=3600)](https://www.gnu.org/licenses/gpl-2.0.html)
 
-![](https://raw.githubusercontent.com/LolHens/restic-android/main/screenshots/icon.png)
+![Icon](https://raw.githubusercontent.com/LolHens/restic-android/main/screenshots/icon.png)
 
 This project aims to make Backups on Android easy and fast using [Restic](https://restic.net).
 
