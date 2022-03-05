@@ -50,6 +50,7 @@ class BackupManager private constructor(context: Context) {
     }
 
     val notificationChannelId = "RESTIC_BACKUP_PROGRESS"
+    var lastmillis = System.currentTimeMillis()
 
     private fun updateNotification(
         context: Context,
@@ -59,6 +60,13 @@ class BackupManager private constructor(context: Context) {
     ) {
         when {
             activeBackup.inProgress -> {
+                // reduce number of notification updates
+                val nowmillis = System.currentTimeMillis()
+                if( (nowmillis-lastmillis) < 333 )
+                    return
+                else
+                    lastmillis = nowmillis
+
                 // TODO: use somewhere
                 val details = if (activeBackup.progress == null) null else {
                     """
