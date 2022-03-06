@@ -6,6 +6,7 @@ import android.app.job.JobScheduler
 import android.app.job.JobService
 import android.content.ComponentName
 import android.content.Context
+import android.net.wifi.WifiManager
 import de.lolhens.resticui.config.FolderConfig
 import java.time.ZonedDateTime
 
@@ -28,9 +29,9 @@ class BackupService : JobService() {
                 //builder.setMinimumLatency(2 * 60 * 1000L)
                 //builder.setOverrideDeadline(3 * 60 * 1000L)
                 builder.setPersisted(true)
-                builder.setPeriodic(15 * 60 * 1000L, 30 * 1000L)
+                builder.setPeriodic(60 * 60 * 1000L, 30 * 1000L)
 
-                //builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED)
+                builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED)
                 //builder.setRequiresCharging(true)
                 jobScheduler.schedule(builder.build())
             }
@@ -71,7 +72,15 @@ class BackupService : JobService() {
     }
 
     override fun onStartJob(params: JobParameters?): Boolean {
+        val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE)
+                as? WifiManager
+            ?: throw IllegalStateException("Could not get system Context.WIFI_SERVICE")
+        val createWifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "restic")
+        createWifiLock.setReferenceCounted(false)
+        createWifiLock.acquire()
+
         startBackup(applicationContext) {
+            createWifiLock.release()
             jobFinished(params, false)
         }
 
