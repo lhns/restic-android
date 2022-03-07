@@ -5,11 +5,14 @@ import kotlinx.serialization.json.Json
 
 @Serializable
 data class Config(
-    val repos: List<@Serializable(with = RepoConfigSerializer::class) RepoConfig>,
+    val repos: List<RepoConfig>,
     val folders: List<FolderConfig>
 ) {
     companion object {
-        val format = Json { ignoreUnknownKeys = true }
+        val format = Json {
+            prettyPrint = true
+            ignoreUnknownKeys = true
+        }
 
         fun fromJsonString(json: String): Config = format.decodeFromString(serializer(), json)
     }

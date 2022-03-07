@@ -44,11 +44,11 @@ class RepoEditFragment : Fragment() {
 
         if (repo != null) {
             binding.editRepoName.setText(repo.base.name)
-            binding.editRepoPassword.setText(repo.base.password)
+            binding.editRepoPassword.setText(repo.base.password.secret)
             val s3RepoParams = repo.params as S3RepoParams
             binding.editS3Url.setText(s3RepoParams.s3Url.toString())
             binding.editAccessKeyId.setText(s3RepoParams.accessKeyId)
-            binding.editSecretAccessKey.setText(s3RepoParams.secretAccessKey)
+            binding.editSecretAccessKey.setText(s3RepoParams.secretAccessKey.secret)
         }
 
         return root
@@ -77,12 +77,12 @@ class RepoEditFragment : Fragment() {
                             repoId,
                             repoName,
                             RepoType.S3,
-                            repoPassword
+                            Secret(repoPassword)
                         ),
                         S3RepoParams(
                             URI(s3UrlString),
                             accessKeyId,
-                            secretAccessKey
+                            Secret(secretAccessKey)
                         )
                     )
 

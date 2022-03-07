@@ -15,6 +15,7 @@ import kotlinx.serialization.json.JsonObject
 import java.net.URI
 import java.util.*
 
+@Serializable(with = RepoConfigSerializer::class)
 data class RepoConfig(
     val base: RepoBaseConfig,
     val params: RepoParams
@@ -50,16 +51,16 @@ object RepoConfigSerializer : KSerializer<RepoConfig> {
 
 @Serializable
 data class RepoBaseConfig(
-    val id: @Serializable(with = RepoConfigIdSerializer::class) RepoConfigId,
+    val id: RepoConfigId,
     val name: String,
     val type: RepoType,
-    val password: String
+    val password: Secret
 ) {
     companion object {
         fun create(
             name: String,
             type: RepoType,
-            password: String
+            password: Secret
         ): RepoBaseConfig =
             RepoBaseConfig(
                 RepoConfigId(UUID.randomUUID()),
@@ -93,13 +94,13 @@ abstract class RepoParams {
 data class S3RepoParams(
     val s3Url: @Serializable(with = URISerializer::class) URI,
     val accessKeyId: String,
-    val secretAccessKey: String
+    val secretAccessKey: Secret
 ) : RepoParams() {
     override fun repo(baseConfig: RepoBaseConfig, restic: Restic): ResticRepo = ResticRepoS3(
         restic,
-        baseConfig.password,
+        baseConfig.password.secret,
         s3Url,
         accessKeyId,
-        secretAccessKey
+        secretAccessKey.secret
     )
 }
