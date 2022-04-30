@@ -31,8 +31,6 @@ jobs:
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
           export RELEASE_STORE_FILE="$(readlink -f keystore.jks)"
-          echo ${{ github.run_id }}
-          echo ${{ github.run_number }}
           if [ -e keystore.jks ]; then
             ./gradlew assembleRelease
           else
