@@ -5,7 +5,7 @@ plugins {
 }
 
 def getBuildNumber = { ->
-    System.getenv('CI_BUILD_NUMBER')?.toInteger() ?: 1
+    System.getenv('CI_BUILD_NUMBER')?.toLong() ?: 1
 }
 
 def getVersion = { ->
