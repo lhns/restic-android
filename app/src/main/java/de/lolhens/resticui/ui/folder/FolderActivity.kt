@@ -1,5 +1,6 @@
 package de.lolhens.resticui.ui.folder
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
@@ -12,11 +13,15 @@ import de.lolhens.resticui.databinding.ActivityFolderBinding
 
 class FolderActivity : AppCompatActivity() {
     companion object {
-        fun start(fragment: Fragment, edit: Boolean, id: FolderConfigId) {
-            val intent = Intent(fragment.requireContext(), FolderActivity::class.java)
+        fun intent(context: Context, edit: Boolean, id: FolderConfigId): Intent {
+            val intent = Intent(context, FolderActivity::class.java)
             intent.putExtra("edit", edit)
             intent.putExtra("id", id.toString())
-            fragment.startActivity(intent)
+            return intent
+        }
+
+        fun start(fragment: Fragment, edit: Boolean, id: FolderConfigId) {
+            fragment.startActivity(intent(fragment.requireContext(), edit, id))
         }
     }
 
