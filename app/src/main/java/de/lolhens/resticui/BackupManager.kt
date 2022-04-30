@@ -120,16 +120,27 @@ class BackupManager private constructor(context: Context) {
                 )
             }
             activeBackup.summary != null && doneNotification -> {
+                var contentTitle = ""
+                for( folder in config.folders ) {
+                    if (folder.id == folderConfigId) {
+                        contentTitle = "${folder.path}"
+                        break
+                    }
+                }
+                val details = if (activeBackup.progress == null) "" else {
+                    """
+                    ${activeBackup.progress.files_done}${if (activeBackup.progress.total_files != null) "/${activeBackup.progress.total_files}(${activeBackup.summary.files_changed}) " else "" } 
+                    ${activeBackup.progress.bytesDoneString()}${if (activeBackup.progress.total_bytes != null) "/${activeBackup.progress.totalBytesString()} " else ""}
+                    ${activeBackup.progress.timeElapsedString()}m
+                    """.trimIndent()
+                }
                 notificationManager(context).notify(
                     activeBackup.notificationId,
                     NotificationCompat.Builder(context, notificationChannelId)
                         .setContentIntent(pendingIntent())
                         .setSubText("100%")
-                        .setContentTitle(context.resources.getString(R.string.notification_backup_done_message))
-                        .setContentText(
-                            if (activeBackup.progress == null) null
-                            else "${activeBackup.progress.timeElapsedString()} elapsed"
-                        )
+                        .setContentTitle(contentTitle)
+                        .setContentText( details )
                         .setSmallIcon(R.drawable.outline_cloud_done_24)
                         .build()
                 )
