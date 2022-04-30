@@ -2,5 +2,7 @@
 <resources>
     <string-array name="repo_types">
         <item>S3</item>
+        <item>Rest</item>
+        <item>B2</item>
     </string-array>
 </resources>
