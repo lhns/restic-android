@@ -29,9 +29,9 @@ data class ResticBackupProgress(
     private fun formatBytes(bytes: Long?) =
         when {
             bytes == null -> null
-            bytes >= 1_000_000_000 -> "${"%.2f".format(bytes / 10_000_000 / 100.0)} GB"
-            bytes >= 1_000_000 -> "${"%.2f".format(bytes / 10_000 / 100.0)} MB"
-            bytes >= 1_000 -> "${"%.2f".format(bytes / 10 / 100.0)} KB"
+            bytes >= 1_000_000_000 -> "${"%.3f".format(bytes / 10_000_000 / 100.0)}GB"
+            bytes >= 1_000_000 -> "${"%.2f".format(bytes / 10_000 / 100.0)}MB"
+            bytes >= 1_000 -> "${"%d".format(bytes / 10 / 100)}KB"
             else -> "$bytes B"
         }
 

@@ -2,6 +2,7 @@ package de.lolhens.resticui
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleOwner
@@ -9,6 +10,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.observe
 import de.lolhens.resticui.config.*
 import de.lolhens.resticui.restic.*
+import de.lolhens.resticui.ui.folder.FolderActivity
 import java.time.Duration
 import java.time.ZonedDateTime
 import java.util.concurrent.CompletableFuture
@@ -50,15 +52,31 @@ class BackupManager private constructor(context: Context) {
     }
 
     val notificationChannelId = "RESTIC_BACKUP_PROGRESS"
+    private var lastMillis = 0L
 
     private fun updateNotification(
         context: Context,
+        folderConfigId: FolderConfigId,
         activeBackup: ActiveBackup,
         doneNotification: Boolean = true,
         errorNotification: Boolean = true
     ) {
+        fun pendingIntent() = PendingIntent.getActivity(
+            context,
+            0,
+            FolderActivity.intent(context, false, folderConfigId),
+            PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
         when {
             activeBackup.inProgress -> {
+                // reduce number of notification updates
+                val nowMillis = System.currentTimeMillis()
+                if ((nowMillis - lastMillis) < 300)
+                    return
+                else
+                    lastMillis = nowMillis
+
                 // TODO: use somewhere
                 val details = if (activeBackup.progress == null) null else {
                     """
@@ -72,6 +90,7 @@ class BackupManager private constructor(context: Context) {
                 notificationManager(context).notify(
                     activeBackup.notificationId,
                     NotificationCompat.Builder(context, notificationChannelId)
+                        .setContentIntent(pendingIntent())
                         .setSubText(progress)
                         .setContentTitle("${context.resources.getString(R.string.notification_backup_progress_message)} $progress")
                         .setContentText(
@@ -92,6 +111,7 @@ class BackupManager private constructor(context: Context) {
                 notificationManager(context).notify(
                     activeBackup.notificationId,
                     NotificationCompat.Builder(context, notificationChannelId)
+                        .setContentIntent(pendingIntent())
                         .setContentTitle(
                             "${context.resources.getString(R.string.notification_backup_failed_message)}\n${activeBackup.error}"
                         )
@@ -100,15 +120,27 @@ class BackupManager private constructor(context: Context) {
                 )
             }
             activeBackup.summary != null && doneNotification -> {
+                var contentTitle = ""
+                for( folder in config.folders ) {
+                    if (folder.id == folderConfigId) {
+                        contentTitle = "${folder.path}"
+                        break
+                    }
+                }
+                val details = if (activeBackup.progress == null) "" else {
+                    """
+                    ${activeBackup.progress.files_done}${if (activeBackup.progress.total_files != null) "/${activeBackup.progress.total_files}(${activeBackup.summary.files_changed}) " else "" } 
+                    ${activeBackup.progress.bytesDoneString()}${if (activeBackup.progress.total_bytes != null) "/${activeBackup.progress.totalBytesString()} " else ""}
+                    ${activeBackup.progress.timeElapsedString()}m
+                    """.trimIndent()
+                }
                 notificationManager(context).notify(
                     activeBackup.notificationId,
                     NotificationCompat.Builder(context, notificationChannelId)
+                        .setContentIntent(pendingIntent())
                         .setSubText("100%")
-                        .setContentTitle(context.resources.getString(R.string.notification_backup_done_message))
-                        .setContentText(
-                            if (activeBackup.progress == null) null
-                            else "${activeBackup.progress.timeElapsedString()} elapsed"
-                        )
+                        .setContentTitle(contentTitle)
+                        .setContentText( details )
                         .setSmallIcon(R.drawable.outline_cloud_done_24)
                         .build()
                 )
@@ -179,7 +211,7 @@ class BackupManager private constructor(context: Context) {
         val activeBackup = ActiveBackup.create()
         activeBackupLiveData.postValue(activeBackup)
 
-        updateNotification(context, activeBackup)
+        updateNotification(context, folder.id, activeBackup)
 
         resticRepo.backup(
             ResticRepo.hostname,
@@ -187,7 +219,7 @@ class BackupManager private constructor(context: Context) {
             { progress ->
                 val activeBackupProgress = activeBackupLiveData.value!!.progress(progress)
                 activeBackupLiveData.postValue(activeBackupProgress)
-                updateNotification(context, activeBackupProgress)
+                updateNotification(context, folder.id, activeBackupProgress)
             },
             activeBackup.cancelFuture
         ).handle { summary, throwable ->
@@ -220,7 +252,7 @@ class BackupManager private constructor(context: Context) {
 
             val finishedActiveBackup = activeBackupLiveData.value!!.finish(summary, errorMessage)
             activeBackupLiveData.postValue(finishedActiveBackup)
-            updateNotification(context, finishedActiveBackup)
+            updateNotification(context, folder.id, finishedActiveBackup)
 
             fun removeOldBackups(callback: () -> Unit) {
                 if (removeOld && throwable == null && (folder.keepLast != null || folder.keepWithin != null)) {

@@ -8,8 +8,8 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v2.5.0
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3.1.0
         with:
           distribution: 'adopt'
           java-version: '11'
@@ -27,7 +27,7 @@ jobs:
         run: |
           export RELEASE_STORE_FILE="$(readlink -f keystore.jks)"
           ./gradlew assembleRelease
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           path: 'app/build/outputs/apk/release/*.apk'
       - uses: AButler/upload-release-assets@v2.0
