@@ -1,9 +1,7 @@
 package de.lolhens.resticui.config
 
 import de.lolhens.resticui.URISerializer
-import de.lolhens.resticui.restic.Restic
-import de.lolhens.resticui.restic.ResticRepo
-import de.lolhens.resticui.restic.ResticRepoS3
+import de.lolhens.resticui.restic.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -79,6 +77,22 @@ enum class RepoType(type: String) {
         override fun deserializeParams(json: JsonObject): S3RepoParams =
             Config.format.decodeFromString(Config.format.encodeToString(json))
 
+    },
+    Rest("rest") {
+        override fun serializeParams(value: RepoParams): JsonObject =
+            Config.format.decodeFromString(Config.format.encodeToString(value as RestRepoParams))
+
+        override fun deserializeParams(json: JsonObject): RestRepoParams =
+            Config.format.decodeFromString(Config.format.encodeToString(json))
+
+    },
+    B2("b2") {
+        override fun serializeParams(value: RepoParams): JsonObject =
+            Config.format.decodeFromString(Config.format.encodeToString(value as B2RepoParams))
+
+        override fun deserializeParams(json: JsonObject): B2RepoParams =
+            Config.format.decodeFromString(Config.format.encodeToString(json))
+
     };
 
     abstract fun serializeParams(value: RepoParams): JsonObject
@@ -102,5 +116,31 @@ data class S3RepoParams(
         s3Url,
         accessKeyId,
         secretAccessKey.secret
+    )
+}
+
+@Serializable
+data class RestRepoParams(
+    val restUrl: @Serializable(with = URISerializer::class) URI,
+) : RepoParams() {
+    override fun repo(baseConfig: RepoBaseConfig, restic: Restic): ResticRepo = ResticRepoRest(
+        restic,
+        baseConfig.password,
+        restUrl,
+    )
+}
+
+@Serializable
+data class B2RepoParams(
+    val b2Url: @Serializable(with = URISerializer::class) URI,
+    val b2AccountId: String,
+    val b2AccountKey: String
+) : RepoParams() {
+    override fun repo(baseConfig: RepoBaseConfig, restic: Restic): ResticRepo = ResticRepoB2(
+        restic,
+        baseConfig.password,
+        b2Url,
+        b2AccountId,
+        b2AccountKey
     )
 }

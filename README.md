@@ -19,7 +19,7 @@ This project is **not** an official app made by the restic team.
 Please report any issues on the [restic-android issue tracker](https://github.com/LolHens/restic-android/issues).
 
 ## Features
-- Manage Restic Repositories (S3 is currently the only supported protocol)
+- Manage Restic Repositories (S3, B2, Rest are currently the only supported protocols)
 - Manage Restic Snapshots
 - Manage Folders for Backup
 - Configure Schedules for automatic Backups

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/fragment_repo_edit"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -12,7 +13,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="24dp"
         android:layout_marginEnd="16dp"
-        android:text="Repository Name"
+        android:text="@string/repo_edit_name_title"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -20,6 +21,7 @@
 
     <EditText
         android:id="@+id/edit_repo_name"
+        android:hint="@string/repo_edit_name_hint"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
@@ -28,31 +30,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text_repo_name" />
-
-    <TextView
-        android:id="@+id/text_repo_type"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
-        android:text="Repository Type"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/edit_repo_name" />
-
-    <Spinner
-        android:id="@+id/spinner_repo_type"
-        android:layout_width="0dp"
-        android:layout_height="32dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        android:entries="@array/repo_types"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text_repo_type" />
+        app:layout_constraintTop_toBottomOf="@+id/text_repo_name"
+        android:inputType="text" />
 
     <TextView
         android:id="@+id/text_repo_password"
@@ -61,14 +40,15 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
-        android:text="Repository Password"
+        android:text="@string/repo_edit_password_title"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/spinner_repo_type" />
+        app:layout_constraintTop_toBottomOf="@+id/edit_repo_name" />
 
     <EditText
         android:id="@+id/edit_repo_password"
+        android:hint="@string/repo_edit_password_hint"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
@@ -79,81 +59,67 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/text_repo_password" />
 
+    <Spinner
+        android:id="@+id/spinner_repo_type"
+        android:layout_width="0dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="32dp"
+        android:entries="@array/repo_types"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/text_repo_type" />
+
     <TextView
-        android:id="@+id/text_s3_url"
+        android:id="@+id/text_repo_type"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
-        android:text="S3 Endpoint URL"
+        android:text="@string/repo_edit_type_title"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/edit_repo_password" />
 
-    <EditText
-        android:id="@+id/edit_s3_url"
+    <include
+        android:id="@+id/edit_repo_s3_parameters"
+        layout="@layout/fragment_repo_edit_s3"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        android:ems="10"
+        android:layout_marginTop="32dp"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text_s3_url" />
+        app:layout_constraintTop_toBottomOf="@+id/spinner_repo_type"
+        tools:visibility="gone" />
 
-    <TextView
-        android:id="@+id/text_access_key_id"
+    <include
+        android:id="@+id/edit_repo_rest_parameters"
+        layout="@layout/fragment_repo_edit_rest"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
-        android:text="ACCESS_KEY_ID"
+        android:layout_marginTop="32dp"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/edit_s3_url" />
+        app:layout_constraintTop_toBottomOf="@+id/spinner_repo_type"
+        tools:visibility="gone" />
 
-    <EditText
-        android:id="@+id/edit_access_key_id"
+    <include
+        android:id="@+id/edit_repo_b2_parameters"
+        layout="@layout/fragment_repo_edit_b2"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        android:ems="10"
-        android:inputType="textPassword"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text_access_key_id" />
-
-    <TextView
-        android:id="@+id/text_secret_access_key"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
-        android:text="SECRET_ACCESS_KEY"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/edit_access_key_id" />
-
-    <EditText
-        android:id="@+id/edit_secret_access_key"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        android:ems="10"
-        android:inputType="textPassword"
+        android:layout_marginTop="32dp"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text_secret_access_key" />
+        app:layout_constraintTop_toBottomOf="@+id/spinner_repo_type"
+        tools:visibility="gone" />
 
     <ProgressBar
         android:id="@+id/progress_repo_save"
@@ -164,5 +130,5 @@
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/edit_secret_access_key" />
+        app:layout_constraintTop_toBottomOf="@+id/edit_repo_password" />
 </androidx.constraintlayout.widget.ConstraintLayout>

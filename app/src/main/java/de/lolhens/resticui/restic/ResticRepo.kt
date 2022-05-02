@@ -14,10 +14,20 @@ abstract class ResticRepo(
     companion object {
         private val format = Json { ignoreUnknownKeys = true }
 
+        private const val DEFAULT_HOSTNAME = "android-device"
+
         private val filterJson = { line: String -> line.startsWith("{") || line.startsWith("[") }
 
         val hostname: String by lazy {
-            BluetoothAdapter.getDefaultAdapter().name // TODO: handle D/BluetoothAdapter: java.lang.Throwable
+            val blueToothAdapter = BluetoothAdapter.getDefaultAdapter()
+
+            if (blueToothAdapter != null) {
+                // Some Devices do not have a BluetoothAdapter e.g. the Android Emulator. For this case we use a default
+                // value
+                BluetoothAdapter.getDefaultAdapter().name
+            } else {
+                return@lazy DEFAULT_HOSTNAME
+            }
         }
     }
 
