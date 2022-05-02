@@ -10,8 +10,8 @@ import java.time.ZonedDateTime
 
 @Serializable
 data class FolderConfig(
-    val id: @Serializable(with = FolderConfigIdSerializer::class) FolderConfigId,
-    val repoId: @Serializable(with = RepoConfigIdSerializer::class) RepoConfigId,
+    val id: FolderConfigId,
+    val repoId: RepoConfigId,
     val path: @Serializable(with = FileSerializer::class) File,
     val schedule: String,
     val keepLast: Int? = null,

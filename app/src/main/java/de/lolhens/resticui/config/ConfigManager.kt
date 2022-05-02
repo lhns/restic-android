@@ -9,21 +9,23 @@ import java.nio.charset.StandardCharsets
 
 class ConfigManager(
     context: Context,
-    fileName: String = "config.json.enc"
+    configFileName: String = "config.json",
+    encryptedConfigFileName: String = "config.json.enc"
 ) {
-    private val mainKey = MasterKey.Builder(context)
-        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-        .build()
-
-    private val configFile = context.dataDir.resolve(fileName)
-    private val configFileTmp = context.dataDir.resolve("$fileName.tmp")
+    private val configFile = context.dataDir.resolve(configFileName)
+    private val configFileTmp = context.dataDir.resolve("$configFileName.tmp")
+    private val encryptedConfigFile = context.dataDir.resolve(encryptedConfigFileName)
 
     private fun defaultConfig(): Config = Config(
         emptyList(),
         emptyList()
     )
 
-    private fun readConfig(context: Context, file: File): Config {
+    private fun readEncryptedConfig(context: Context, file: File): Config {
+        val mainKey = MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+
         val encryptedFile = EncryptedFile.Builder(
             context,
             file,
@@ -44,48 +46,50 @@ class ConfigManager(
     }
 
     fun readConfig(context: Context): Config {
-        if (configFile.exists()) try {
-            return readConfig(context, configFile)
-        } catch (e: Exception) {
-            e.printStackTrace()
+        fun readConfigFile(file: File): Config {
+            val bytes = file.readBytes()
+            val json = String(bytes, Charsets.UTF_8)
+            return Config.fromJsonString(json)
         }
 
-        if (configFileTmp.exists()) try {
-            configFile.delete()
-            configFileTmp.renameTo(configFile)
-            return readConfig(context, configFile)
-        } catch (e: Exception) {
-            e.printStackTrace()
+        Secret.loadKey(context)
+
+        if (configFile.exists()) {
+            try {
+                return readConfigFile(configFile)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        if (configFileTmp.exists()) {
+            try {
+                configFile.delete()
+                configFileTmp.renameTo(configFile)
+                return readConfigFile(configFile)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        // migrate old config
+        if (encryptedConfigFile.exists()) {
+            try {
+                return readEncryptedConfig(context, encryptedConfigFile)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
 
         return defaultConfig()
     }
 
     fun writeConfig(context: Context, config: Config) {
-        val createBackup = configFile.exists()
-
-        if (createBackup) {
-            configFileTmp.delete()
-            configFile.renameTo(configFileTmp)
-        }
-
-        val encryptedFile = EncryptedFile.Builder(
-            context,
-            configFile,
-            mainKey,
-            EncryptedFile.FileEncryptionScheme.AES256_GCM_HKDF_4KB
-        ).build()
+        Secret.loadKey(context)
 
         val json: String = config.toJsonString()
-
-        encryptedFile.openFileOutput().apply {
-            write(json.toByteArray(StandardCharsets.UTF_8))
-            flush()
-            close()
-        }
-
-        if (createBackup) {
-            configFileTmp.delete()
-        }
+        configFileTmp.writeBytes(json.toByteArray(Charsets.UTF_8))
+        configFile.delete()
+        configFileTmp.renameTo(configFile)
     }
 }

@@ -76,14 +76,14 @@ class RepoEditFragment : Fragment() {
 
             // prefill the view if the repo already exists and is going to be edited instead of created.
             binding.editRepoName.setText(repo.base.name)
-            binding.editRepoPassword.setText(repo.base.password)
+            binding.editRepoPassword.setText(repo.base.password.secret)
             binding.spinnerRepoType.setSelection(RepoType.values().indexOf(repo.base.type))
             when (repo.base.type) {
                 RepoType.S3 -> {
                     val s3RepoParams = repo.params as S3RepoParams
                     binding.editRepoS3Parameters.editS3Uri.setText(s3RepoParams.s3Url.toString())
                     binding.editRepoS3Parameters.editS3AccessKeyId.setText(s3RepoParams.accessKeyId)
-                    binding.editRepoS3Parameters.editS3SecretAccessKey.setText(s3RepoParams.secretAccessKey)
+                    binding.editRepoS3Parameters.editS3SecretAccessKey.setText(s3RepoParams.secretAccessKey.secret)
                 }
                 RepoType.Rest -> {
                     val restRepoParams = repo.params as RestRepoParams
@@ -93,7 +93,7 @@ class RepoEditFragment : Fragment() {
                     val b2RepoParams = repo.params as B2RepoParams
                     binding.editRepoB2Parameters.editB2Uri.setText(b2RepoParams.b2Url.toString())
                     binding.editRepoB2Parameters.editB2AccountId.setText(b2RepoParams.b2AccountId)
-                    binding.editRepoB2Parameters.editB2AccountKey.setText(b2RepoParams.b2AccountKey)
+                    binding.editRepoB2Parameters.editB2AccountKey.setText(b2RepoParams.b2AccountKey.secret)
                 }
 
             }.apply {} // do not remove - throws a compiler error if any of the repo types cases is not covered by the when
@@ -208,10 +208,10 @@ class RepoEditFragment : Fragment() {
         }
 
         val baseConfig = RepoBaseConfig(
-            repoId,
-            binding.editRepoName.text.toString(),
-            repoType,
-            binding.editRepoPassword.text.toString()
+            id = repoId,
+            name = binding.editRepoName.text.toString(),
+            type = repoType,
+            password = Secret(binding.editRepoPassword.text.toString())
         )
 
         return true to when (repoType) {
@@ -221,7 +221,7 @@ class RepoEditFragment : Fragment() {
                     S3RepoParams(
                         s3Url = URI(binding.editRepoS3Parameters.editS3Uri.text.toString()),
                         accessKeyId = binding.editRepoS3Parameters.editS3AccessKeyId.text.toString(),
-                        secretAccessKey = binding.editRepoS3Parameters.editS3SecretAccessKey.text.toString()
+                        secretAccessKey = Secret(binding.editRepoS3Parameters.editS3SecretAccessKey.text.toString())
                     )
                 )
             }
@@ -239,7 +239,7 @@ class RepoEditFragment : Fragment() {
                     B2RepoParams(
                         b2Url = URI(binding.editRepoB2Parameters.editB2Uri.text.toString()),
                         b2AccountId = binding.editRepoB2Parameters.editB2AccountId.text.toString(),
-                        b2AccountKey = binding.editRepoB2Parameters.editB2AccountKey.text.toString(),
+                        b2AccountKey = Secret(binding.editRepoB2Parameters.editB2AccountKey.text.toString()),
                     )
                 )
             }
