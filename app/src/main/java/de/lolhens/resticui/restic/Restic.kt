@@ -7,6 +7,8 @@ import java.io.InputStream
 import java.net.InetAddress
 import java.nio.charset.StandardCharsets
 import java.security.KeyStore
+import java.security.KeyStoreException
+import java.security.NoSuchAlgorithmException
 import java.security.cert.X509Certificate
 import java.util.concurrent.CompletableFuture
 
@@ -107,18 +109,34 @@ class Restic(
     private fun certificatesFile(): Pair<String, ByteArray> {
         val keyStore = KeyStore.getInstance("AndroidCAStore")
 
-        val certificates = keyStore.aliases().toList().flatMap { alias ->
-            val certificate = keyStore.getCertificate(alias)
-            if (certificate is X509Certificate)
-                listOf(certificate)
-            else
+        val certificates: List<X509Certificate> =
+            if (keyStore != null) try {
+                keyStore.load(null, null)
+                keyStore.aliases().toList().flatMap { alias ->
+                    val certificate = keyStore.getCertificate(alias)
+                    if (certificate is X509Certificate)
+                        listOf(certificate)
+                    else
+                        emptyList()
+                }
+            } catch (e: KeyStoreException) {
+                e.printStackTrace()
                 emptyList()
-        }
+            } catch (e: NoSuchAlgorithmException) {
+                e.printStackTrace()
+                emptyList()
+            } else {
+                emptyList()
+            }
 
-        val encodedCertificates = certificates.flatMap { certificate ->
-            listOf("-----BEGIN CERTIFICATE-----") +
-                    Base64.encodeToString(certificate.encoded, Base64.DEFAULT).chunked(64) +
-                    listOf("-----END CERTIFICATE-----")
+        val encodedCertificates: String = certificates.flatMap { certificate ->
+            listOf(
+                "-----BEGIN CERTIFICATE-----"
+            ).plus(
+                Base64.encodeToString(certificate.encoded, Base64.DEFAULT).chunked(64)
+            ).plusElement(
+                "-----END CERTIFICATE-----"
+            )
         }.joinToString("\n")
 
         return Pair(
@@ -137,7 +155,8 @@ class Restic(
     ): CompletableFuture<Pair<List<String>, List<String>>> =
         tempFileBind(nameServersFile(nameServers.nameServers())) { nameserversBind ->
             tempFileBind(hostsFile(hosts)) { hostsBind ->
-                tempFileBind(certificatesFile()) { certificatesBind ->
+                val certificatesFile = certificatesFile()
+                tempFileBind(certificatesFile) { certificatesBind ->
                     CompletableFuture.supplyAsync {
                         Runtime.getRuntime().exec(
                             withProot(
@@ -149,8 +168,10 @@ class Restic(
                                     binds()
                                 ),
                                 listOf(restic.absolutePath).plus(
-                                    args + listOf(
-                                        "--cacert", certificatesBind.second
+                                    args.plus(
+                                        listOf(
+                                            "--cacert", certificatesBind.second
+                                        ).filterNot { certificatesFile.second.isEmpty() }
                                     )
                                 )
                             ).toTypedArray(),
