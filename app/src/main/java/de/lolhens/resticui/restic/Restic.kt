@@ -1,10 +1,13 @@
 package de.lolhens.resticui.restic
 
 import android.system.Os
+import android.util.Base64
 import java.io.File
 import java.io.InputStream
 import java.net.InetAddress
 import java.nio.charset.StandardCharsets
+import java.security.KeyStore
+import java.security.cert.X509Certificate
 import java.util.concurrent.CompletableFuture
 
 class Restic(
@@ -101,6 +104,29 @@ class Restic(
                 .toByteArray(StandardCharsets.UTF_8)
         )
 
+    private fun certificatesFile(): Pair<String, ByteArray> {
+        val keyStore = KeyStore.getInstance("AndroidCAStore")
+
+        val certificates = keyStore.aliases().toList().flatMap { alias ->
+            val certificate = keyStore.getCertificate(alias)
+            if (certificate is X509Certificate)
+                listOf(certificate)
+            else
+                emptyList()
+        }
+
+        val encodedCertificates = certificates.flatMap { certificate ->
+            listOf("-----BEGIN CERTIFICATE-----") +
+                    Base64.encodeToString(certificate.encoded, Base64.DEFAULT).chunked(64) +
+                    listOf("-----END CERTIFICATE-----")
+        }.joinToString("\n")
+
+        return Pair(
+            "/etc/ssl/certs/android.crt",
+            encodedCertificates.toByteArray(StandardCharsets.UTF_8)
+        )
+    }
+
     fun restic(
         args: List<String>,
         vars: List<Pair<String, String>> = emptyList(),
@@ -111,55 +137,62 @@ class Restic(
     ): CompletableFuture<Pair<List<String>, List<String>>> =
         tempFileBind(nameServersFile(nameServers.nameServers())) { nameserversBind ->
             tempFileBind(hostsFile(hosts)) { hostsBind ->
-                CompletableFuture.supplyAsync {
-                    Runtime.getRuntime().exec(
-                        withProot(
-                            listOf(
-                                nameserversBind,
-                                hostsBind
-                            ).plus(
-                                binds()
-                            ),
-                            listOf(restic.absolutePath).plus(args)
-                        ).toTypedArray(),
-                        vars().plus(vars).map { (key, value) -> "$key=$value" }.toTypedArray()
-                    )
-                }
-                    .thenCompose { process ->
-                        fun InputStream.linesAsync(filter: ((String) -> Boolean)?) =
-                            CompletableFuture.supplyAsync {
-                                this.bufferedReader().lineSequence()
-                                    .filter {
-                                        if (filter == null) true
-                                        else if (cancel == null || !cancel.isDone) filter(it)
-                                        else false
-                                    }.toList()
-                            }
-
-                        val outFuture = process.inputStream.linesAsync(filterOut)
-                        val errFuture = process.errorStream.linesAsync(filterErr)
-
-                        val future = outFuture.thenCompose { out ->
-                            errFuture.thenApplyAsync { err ->
-                                val exitCode = process.waitFor()
-                                if (exitCode == 0) Pair(out, err)
-                                else throw ResticException(exitCode, err)
-                            }
-                        }
-
-                        cancel?.thenRun {
-                            future.completeExceptionally(
-                                ResticException(
-                                    0,
-                                    emptyList(),
-                                    cancelled = true
+                tempFileBind(certificatesFile()) { certificatesBind ->
+                    CompletableFuture.supplyAsync {
+                        Runtime.getRuntime().exec(
+                            withProot(
+                                listOf(
+                                    nameserversBind,
+                                    hostsBind,
+                                    certificatesBind
+                                ).plus(
+                                    binds()
+                                ),
+                                listOf(restic.absolutePath).plus(
+                                    args + listOf(
+                                        "--cacert", certificatesBind.second
+                                    )
                                 )
-                            )
-                            process.destroy()
-                        }
-
-                        future
+                            ).toTypedArray(),
+                            vars().plus(vars).map { (key, value) -> "$key=$value" }.toTypedArray()
+                        )
                     }
+                        .thenCompose { process ->
+                            fun InputStream.linesAsync(filter: ((String) -> Boolean)?) =
+                                CompletableFuture.supplyAsync {
+                                    this.bufferedReader().lineSequence()
+                                        .filter {
+                                            if (filter == null) true
+                                            else if (cancel == null || !cancel.isDone) filter(it)
+                                            else false
+                                        }.toList()
+                                }
+
+                            val outFuture = process.inputStream.linesAsync(filterOut)
+                            val errFuture = process.errorStream.linesAsync(filterErr)
+
+                            val future = outFuture.thenCompose { out ->
+                                errFuture.thenApplyAsync { err ->
+                                    val exitCode = process.waitFor()
+                                    if (exitCode == 0) Pair(out, err)
+                                    else throw ResticException(exitCode, err)
+                                }
+                            }
+
+                            cancel?.thenRun {
+                                future.completeExceptionally(
+                                    ResticException(
+                                        0,
+                                        emptyList(),
+                                        cancelled = true
+                                    )
+                                )
+                                process.destroy()
+                            }
+
+                            future
+                        }
+                }
             }
         }
 
