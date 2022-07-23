@@ -49,6 +49,20 @@ class FolderFragment : Fragment() {
         val folder = config.folders.find { it.id == folderId }
         val repo = folder?.repo(config)
 
+        // fix nested scrolling for ListView
+        binding.listFolderSnapshots.setOnTouchListener { view, event ->
+            val action = event.action
+            when (action) {
+                MotionEvent.ACTION_DOWN ->
+                    view.parent.requestDisallowInterceptTouchEvent(true)
+                MotionEvent.ACTION_UP ->
+                    view.parent.requestDisallowInterceptTouchEvent(false)
+            }
+
+            view.onTouchEvent(event)
+            true
+        }
+
         if (folder != null && repo != null) {
             binding.textRepo.text = repo.base.name
             binding.textFolder.text = folder.path.path
