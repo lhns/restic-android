@@ -18,6 +18,7 @@
     <string name="button_done">Done</string>
     <string name="button_browse">Browse</string>
     <string name="button_backup">Backup</string>
+    <string name="button_ok">OK</string>
     <string name="button_cancel">Cancel</string>
     <string name="button_refresh">Refresh</string>
     <string name="alert_delete_repo_title">Delete Repository Configuration</string>

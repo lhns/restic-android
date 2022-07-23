@@ -9,8 +9,12 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.observe
 import de.lolhens.resticui.config.*
-import de.lolhens.resticui.restic.*
+import de.lolhens.resticui.restic.Restic
+import de.lolhens.resticui.restic.ResticException
+import de.lolhens.resticui.restic.ResticNameServers
+import de.lolhens.resticui.restic.ResticStorage
 import de.lolhens.resticui.ui.folder.FolderActivity
+import de.lolhens.resticui.util.HostnameUtil
 import java.time.Duration
 import java.time.ZonedDateTime
 import java.util.concurrent.CompletableFuture
@@ -47,8 +51,21 @@ class BackupManager private constructor(context: Context) {
     fun initRestic(context: Context) {
         _restic = Restic(
             ResticStorage.fromContext(context),
+            HostnameUtil.detectHostname(),
             ResticNameServers.fromContext(context)
         )
+    }
+
+    fun setHostname(hostname: String?): String {
+        val hostname = hostname ?: HostnameUtil.detectHostname()
+        _restic = _restic.withHostname(hostname)
+        return hostname
+    }
+
+    fun setNameServers(nameServers: ResticNameServers?, context: Context): ResticNameServers {
+        val nameServers = nameServers ?: ResticNameServers.fromContext(context)
+        _restic = _restic.withNameServers(nameServers)
+        return nameServers
     }
 
     val notificationChannelId = "RESTIC_BACKUP_PROGRESS"
@@ -121,18 +138,18 @@ class BackupManager private constructor(context: Context) {
             }
             activeBackup.summary != null && doneNotification -> {
                 var contentTitle = ""
-                for( folder in config.folders ) {
+                for (folder in config.folders) {
                     if (folder.id == folderConfigId) {
                         contentTitle = "${folder.path}"
                         break
                     }
                 }
                 val details = if (activeBackup.progress == null) "" else {
-                    """
-                    ${activeBackup.progress.files_done}${if (activeBackup.progress.total_files != null) "/${activeBackup.progress.total_files}(${activeBackup.summary.files_changed}) " else "" } 
-                    ${activeBackup.progress.bytesDoneString()}${if (activeBackup.progress.total_bytes != null) "/${activeBackup.progress.totalBytesString()} " else ""}
-                    ${activeBackup.progress.timeElapsedString()}m
-                    """.trimIndent()
+                    listOf(
+                        activeBackup.progress.timeElapsedString(),
+                        "${activeBackup.progress.files_done}${if (activeBackup.progress.total_files != null) "/${activeBackup.progress.total_files}" else ""} Files",
+                        "${activeBackup.progress.bytesDoneString()}${if (activeBackup.progress.total_bytes != null) "/${activeBackup.progress.totalBytesString()}" else ""}"
+                    ).joinToString(" | ")
                 }
                 notificationManager(context).notify(
                     activeBackup.notificationId,
@@ -140,7 +157,7 @@ class BackupManager private constructor(context: Context) {
                         .setContentIntent(pendingIntent())
                         .setSubText("100%")
                         .setContentTitle(contentTitle)
-                        .setContentText( details )
+                        .setContentText(details)
                         .setSmallIcon(R.drawable.outline_cloud_done_24)
                         .build()
                 )
@@ -214,7 +231,6 @@ class BackupManager private constructor(context: Context) {
         updateNotification(context, folder.id, activeBackup)
 
         resticRepo.backup(
-            ResticRepo.hostname,
             folder.path,
             { progress ->
                 val activeBackupProgress = activeBackupLiveData.value!!.progress(progress)

@@ -11,7 +11,6 @@ import de.lolhens.resticui.BackupManager
 import de.lolhens.resticui.R
 import de.lolhens.resticui.config.FolderConfigId
 import de.lolhens.resticui.databinding.FragmentFolderBinding
-import de.lolhens.resticui.restic.ResticRepo
 import de.lolhens.resticui.restic.ResticSnapshotId
 import de.lolhens.resticui.ui.Formatters
 import de.lolhens.resticui.ui.snapshot.SnapshotActivity
@@ -77,7 +76,7 @@ class FolderFragment : Fragment() {
                     if (lastSuccessfulBackup == null) ""
                     else "Last Backup on ${Formatters.dateTime(lastSuccessfulBackup.timestamp)}"
 
-                resticRepo.snapshots(ResticRepo.hostname).handle { snapshots, throwable ->
+                resticRepo.snapshots(resticRepo.restic.hostname).handle { snapshots, throwable ->
                     requireActivity().runOnUiThread {
                         binding.progressFolderSnapshots.visibility = GONE
 
