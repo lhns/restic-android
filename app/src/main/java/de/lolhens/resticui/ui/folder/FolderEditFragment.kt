@@ -101,6 +101,9 @@ class FolderEditFragment : Fragment() {
         val directoryPicker =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 val uri = result.data!!.data!!
+
+                println("Selected directory: $uri")
+
                 val path =
                     FileUtil.getFullPathFromTreeUri(
                         requireContext(),
@@ -116,7 +119,13 @@ class FolderEditFragment : Fragment() {
                 binding.editFolder.setText(path)
             }
 
-        binding.buttonFolderSelect.setOnClickListener { _ ->
+        binding.buttonFolderSelect.setOnClickListener {
+            /*
+            DirectoryChooser.instance.chooseDirectory(this, requireContext())
+                .thenAccept { path ->
+                    binding.editFolder.setText(path)
+                }
+             */
             val i = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
             i.addCategory(Intent.CATEGORY_DEFAULT)
             directoryPicker.launch(Intent.createChooser(i, "Choose directory"))
