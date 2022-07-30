@@ -29,23 +29,24 @@ abstract class DirectoryChooser {
             ) {
                 launcher =
                     activityResultCaller.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-                        val uri = result.data!!.data!!
+                        val uri = result.data?.data
+                        if (uri != null) {
+                            println("Selected directory: $uri")
 
-                        println("Selected directory: $uri")
-
-                        val path =
-                            FileUtil.getFullPathFromTreeUri(
-                                context,
-                                uri
-                            ) ?: ASFUriHelper.getPath(
-                                context,
-                                DocumentsContract.buildDocumentUriUsingTree(
-                                    uri,
-                                    DocumentsContract.getTreeDocumentId(uri)
+                            val path =
+                                FileUtil.getFullPathFromTreeUri(
+                                    context,
+                                    uri
+                                ) ?: ASFUriHelper.getPath(
+                                    context,
+                                    DocumentsContract.buildDocumentUriUsingTree(
+                                        uri,
+                                        DocumentsContract.getTreeDocumentId(uri)
+                                    )
                                 )
-                            )
 
-                        onChoose(path)
+                            onChoose(path)
+                        }
                     }
             }
 
