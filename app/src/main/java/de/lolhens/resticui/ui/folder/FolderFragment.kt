@@ -11,7 +11,6 @@ import de.lolhens.resticui.BackupManager
 import de.lolhens.resticui.R
 import de.lolhens.resticui.config.FolderConfigId
 import de.lolhens.resticui.databinding.FragmentFolderBinding
-import de.lolhens.resticui.restic.ResticRepo
 import de.lolhens.resticui.restic.ResticSnapshotId
 import de.lolhens.resticui.ui.Formatters
 import de.lolhens.resticui.ui.snapshot.SnapshotActivity
@@ -50,6 +49,20 @@ class FolderFragment : Fragment() {
         val folder = config.folders.find { it.id == folderId }
         val repo = folder?.repo(config)
 
+        // fix nested scrolling for ListView
+        binding.listFolderSnapshots.setOnTouchListener { view, event ->
+            val action = event.action
+            when (action) {
+                MotionEvent.ACTION_DOWN ->
+                    view.parent.requestDisallowInterceptTouchEvent(true)
+                MotionEvent.ACTION_UP ->
+                    view.parent.requestDisallowInterceptTouchEvent(false)
+            }
+
+            view.onTouchEvent(event)
+            true
+        }
+
         if (folder != null && repo != null) {
             binding.textRepo.text = repo.base.name
             binding.textFolder.text = folder.path.path
@@ -77,7 +90,7 @@ class FolderFragment : Fragment() {
                     if (lastSuccessfulBackup == null) ""
                     else "Last Backup on ${Formatters.dateTime(lastSuccessfulBackup.timestamp)}"
 
-                resticRepo.snapshots(ResticRepo.hostname).handle { snapshots, throwable ->
+                resticRepo.snapshots(resticRepo.restic.hostname).handle { snapshots, throwable ->
                     requireActivity().runOnUiThread {
                         binding.progressFolderSnapshots.visibility = GONE
 

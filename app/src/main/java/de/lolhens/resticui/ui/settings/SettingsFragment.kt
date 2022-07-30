@@ -7,6 +7,8 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import de.lolhens.resticui.BackupManager
 import de.lolhens.resticui.databinding.FragmentSettingsBinding
+import de.lolhens.resticui.restic.ResticNameServers
+import de.lolhens.resticui.ui.InputDialogUtil
 
 class SettingsFragment : Fragment() {
     private var _binding: FragmentSettingsBinding? = null
@@ -52,6 +54,44 @@ class SettingsFragment : Fragment() {
                     }
                 }
         }
+
+        val restic = BackupManager.instance(requireContext()).restic
+
+        binding.buttonHostnameEdit.setOnClickListener {
+            InputDialogUtil.showInputTextDialog(
+                requireContext(),
+                requireView(),
+                binding.textHostnameDescription.text.toString(),
+                binding.textHostname.text.toString()
+            ) { hostname ->
+                binding.textHostname.text = BackupManager.instance(requireContext()).setHostname(
+                    if (hostname.isBlank()) null
+                    else hostname.trim()
+                )
+            }
+        }
+
+        binding.textHostname.text = restic.hostname
+
+        binding.buttonDnsEdit.setOnClickListener {
+            InputDialogUtil.showInputTextDialog(
+                requireContext(),
+                requireView(),
+                binding.textDnsDescription.text.toString(),
+                binding.textDns.text.toString()
+            ) { nameServersString ->
+                val nameServers =
+                    if (nameServersString.isBlank()) emptyList()
+                    else nameServersString.trim().split("\\s*,\\s*".toRegex())
+                binding.textDns.text = BackupManager.instance(requireContext()).setNameServers(
+                    if (nameServers.isEmpty()) null
+                    else ResticNameServers.fromList(nameServers),
+                    requireContext()
+                ).nameServers().joinToString(", ")
+            }
+        }
+
+        binding.textDns.text = restic.nameServers.nameServers().joinToString(", ")
 
         return root
     }

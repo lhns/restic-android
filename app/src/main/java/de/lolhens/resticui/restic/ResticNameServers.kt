@@ -12,6 +12,11 @@ interface ResticNameServers {
 
             }
         }
+
+        fun fromList(nameServers: List<String>): ResticNameServers = object : ResticNameServers {
+            override fun nameServers(): List<String> = nameServers
+
+        }
     }
 
     fun nameServers(): List<String>

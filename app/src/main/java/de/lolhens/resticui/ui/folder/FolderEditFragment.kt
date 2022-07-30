@@ -1,11 +1,8 @@
 package de.lolhens.resticui.ui.folder
 
-import android.content.Intent
 import android.os.Bundle
-import android.provider.DocumentsContract
 import android.view.*
 import android.widget.ArrayAdapter
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import de.lolhens.resticui.BackupManager
 import de.lolhens.resticui.R
@@ -13,8 +10,7 @@ import de.lolhens.resticui.config.FolderConfig
 import de.lolhens.resticui.config.FolderConfigId
 import de.lolhens.resticui.databinding.FragmentFolderEditBinding
 import de.lolhens.resticui.ui.Formatters
-import de.lolhens.resticui.util.ASFUriHelper
-import de.lolhens.resticui.util.FileUtil
+import de.lolhens.resticui.util.DirectoryChooser
 import java.io.File
 import java.time.Duration
 
@@ -98,28 +94,14 @@ class FolderEditFragment : Fragment() {
         )
         binding.spinnerRetainWithin.setSelection(0)
 
-        val directoryPicker =
-            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-                val uri = result.data!!.data!!
-                val path =
-                    FileUtil.getFullPathFromTreeUri(
-                        requireContext(),
-                        uri
-                    ) ?: ASFUriHelper.getPath(
-                        requireContext(),
-                        DocumentsContract.buildDocumentUriUsingTree(
-                            uri,
-                            DocumentsContract.getTreeDocumentId(uri)
-                        )
-                    )
+        val directoryChooser = DirectoryChooser.newInstance()
 
-                binding.editFolder.setText(path)
-            }
+        directoryChooser.register(this, requireContext()) { path ->
+            binding.editFolder.setText(path)
+        }
 
-        binding.buttonFolderSelect.setOnClickListener { _ ->
-            val i = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
-            i.addCategory(Intent.CATEGORY_DEFAULT)
-            directoryPicker.launch(Intent.createChooser(i, "Choose directory"))
+        binding.buttonFolderSelect.setOnClickListener {
+            directoryChooser.openDialog()
         }
 
         if (folder != null && folderRepo != null) {

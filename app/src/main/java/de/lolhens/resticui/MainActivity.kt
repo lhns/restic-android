@@ -9,6 +9,7 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import de.lolhens.resticui.databinding.ActivityMainBinding
+import de.lolhens.resticui.util.PermissionManager
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -39,8 +40,8 @@ class MainActivity : AppCompatActivity() {
 
         val backupManager = BackupManager.instance(applicationContext)
 
-        if (!Permissions.hasStoragePermission(applicationContext, write = false)) {
-            Permissions.requestStoragePermission(this, write = false)
+        if (!PermissionManager.instance.hasStoragePermission(applicationContext, write = true)) {
+            PermissionManager.instance.requestStoragePermission(this, write = true)
                 .thenApply { granted ->
                     if (granted) {
                         backupManager.initRestic(applicationContext)
@@ -63,6 +64,6 @@ class MainActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        Permissions.onRequestPermissionsResult(requestCode)
+        PermissionManager.instance.onRequestPermissionsResult(requestCode)
     }
 }

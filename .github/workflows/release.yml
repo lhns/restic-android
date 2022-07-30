@@ -28,10 +28,11 @@ jobs:
         run: |
           export RELEASE_STORE_FILE="$(readlink -f keystore.jks)"
           ./gradlew assembleRelease
+          mv app/build/outputs/apk/release/*.apk "restic-android-${CI_VERSION}.apk"
       - uses: actions/upload-artifact@v3
         with:
-          path: 'app/build/outputs/apk/release/*.apk'
+          path: '*.apk'
       - uses: AButler/upload-release-assets@v2.0
         with:
-          files: 'app/build/outputs/apk/release/*.apk'
+          files: '*.apk'
           repo-token: ${{ secrets.GITHUB_TOKEN }}

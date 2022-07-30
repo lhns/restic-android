@@ -25,12 +25,14 @@
 
     <EditText
         android:id="@+id/edit_rest_uri"
-        android:hint="@string/repo_edit_rest_uri_hint"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
         android:layout_marginEnd="32dp"
+        android:layout_marginBottom="16dp"
         android:ems="10"
+        android:hint="@string/repo_edit_rest_uri_hint"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
