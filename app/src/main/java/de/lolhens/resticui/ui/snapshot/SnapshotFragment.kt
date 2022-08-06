@@ -1,15 +1,18 @@
 package de.lolhens.resticui.ui.snapshot
 
 import android.app.AlertDialog
+import android.content.Context
 import android.os.Bundle
 import android.view.*
 import android.view.View.GONE
 import android.view.View.VISIBLE
+import android.widget.*
 import androidx.fragment.app.Fragment
 import de.lolhens.resticui.BackupManager
 import de.lolhens.resticui.R
 import de.lolhens.resticui.config.RepoConfigId
 import de.lolhens.resticui.databinding.FragmentSnapshotBinding
+import de.lolhens.resticui.restic.ResticFile
 import de.lolhens.resticui.restic.ResticSnapshotId
 import de.lolhens.resticui.ui.Formatters
 
@@ -68,7 +71,6 @@ class SnapshotFragment : Fragment() {
                                     var p = pair.second.map { it  }
                                     var x = 1
                                     val folderPath = binding.textPath.text
-                                    val folderPath_len = folderPath.length + 1
                                     for ( dir in p ) {
                                         if( dir.path.toString().equals(folderPath) )
                                             break
@@ -76,12 +78,12 @@ class SnapshotFragment : Fragment() {
                                             x++
                                     }
                                     p = p.drop(x)
-                                    binding.listFilesSnapshot.adapter = android.widget.ArrayAdapter(
+                                    binding.listFilesSnapshot.adapter = MyAdapter(
                                         requireContext(),
-                                        R.layout.simple_listitem_small,
-                                        p.map { if(it.type=="dir") "<${it.path.toString().substring(folderPath_len)}>" else " ${it.path.toString().substring(folderPath_len)}"  }
+                                        p as ArrayList<ResticFile>,
+                                        folderPath.length + 1
                                     )
-                                }
+                                    binding.listFilesSnapshot.onItemClickListener = AdapterView.OnItemClickListener{ adapterView, view, i, l -> (binding.listFilesSnapshot.adapter as MyAdapter).triggerSort(binding.listFilesSnapshot) } }
                             }
                     } else {
                         throwable?.printStackTrace()
@@ -136,5 +138,40 @@ class SnapshotFragment : Fragment() {
         super.onDestroyView()
         _backupManager = null
         _binding = null
+    }
+}
+
+
+
+class MyAdapter(private val context: Context, private val arrayList: java.util.ArrayList<ResticFile>, private val FolderPathLen: Int ): BaseAdapter() {
+    private lateinit var pathname: TextView
+    private lateinit var filedate: TextView
+    private var sortOrderIsOrig = true
+    private var arrayListShown = ArrayList(arrayList)
+
+    fun triggerSort(listFilesSnapshot: ListView) {
+        if( sortOrderIsOrig ) arrayListShown.sortByDescending { it.mtime  }
+        else arrayListShown = ArrayList(arrayList)
+        sortOrderIsOrig = !sortOrderIsOrig
+        listFilesSnapshot.invalidateViews()
+    }
+    override fun getCount(): Int {
+        return arrayListShown.size
+    }
+    override fun getItem(position: Int): Any {
+        return position
+    }
+    override fun getItemId(position: Int): Long {
+        return position.toLong()
+    }
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View? {
+        var convertView = convertView
+        convertView = LayoutInflater.from(context).inflate(R.layout.listitem_file, parent, false)
+        pathname = convertView.findViewById(R.id.pathname)
+        filedate = convertView.findViewById(R.id.filedate)
+        val it = arrayListShown[position]
+        pathname.text = if(it.type=="dir") "<${it.path.toString().substring(FolderPathLen)}>" else " ${it.path.toString().substring(FolderPathLen)}"
+        filedate.text = "${Formatters.dateTime(it.mtime)}"
+        return convertView
     }
 }
