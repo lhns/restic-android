@@ -129,8 +129,10 @@ class BackupManager private constructor(context: Context) {
                 }
                 val details = if (activeBackup.progress == null) "" else {
                     """
-                    ${activeBackup.progress.files_done}${if (activeBackup.progress.total_files != null) "/${activeBackup.progress.total_files}(${activeBackup.summary.files_changed}) " else "" } ${activeBackup.progress.timeElapsedString()}m
-                    ${activeBackup.progress.bytesDoneString()}${if (activeBackup.progress.total_bytes != null) "/${activeBackup.progress.totalBytesString()} " else ""} """.trimIndent()
+                    ${activeBackup.progress.files_done}${if (activeBackup.progress.total_files != null) "/${activeBackup.progress.total_files}(${activeBackup.summary.files_changed}) " else "" } 
+                    ${activeBackup.progress.bytesDoneString()}${if (activeBackup.progress.total_bytes != null) "/${activeBackup.progress.totalBytesString()} " else ""}
+                    ${activeBackup.progress.timeElapsedString()}m
+                    """.trimIndent()
                 }
                 notificationManager(context).notify(
                     activeBackup.notificationId,
