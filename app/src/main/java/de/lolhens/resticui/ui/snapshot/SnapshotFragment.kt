@@ -55,12 +55,34 @@ class SnapshotFragment : Fragment() {
 
             resticRepo.cat(snapshotId).handle { snapshot, throwable ->
                 requireActivity().runOnUiThread {
-                    binding.progressSnapshot.visibility = GONE
-
+                    // binding.progressSnapshot.visibility = GONE
                     if (snapshot != null) {
                         binding.textTime.text = "Created on ${Formatters.dateTime(snapshot.time)}"
                         binding.textHostname.text = snapshot.hostname
                         binding.textPath.text = snapshot.paths[0].path
+
+                        resticRepo.ls(snapshotId)
+                            .handle { pair, throwable ->
+                                requireActivity().runOnUiThread {
+                                    binding.progressSnapshot.visibility = GONE
+                                    var p = pair.second.map { it  }
+                                    var x = 1
+                                    val folderPath = binding.textPath.text
+                                    val folderPath_len = folderPath.length + 1
+                                    for ( dir in p ) {
+                                        if( dir.path.toString().equals(folderPath) )
+                                            break
+                                        else
+                                            x++
+                                    }
+                                    p = p.drop(x)
+                                    binding.listFilesSnapshot.adapter = android.widget.ArrayAdapter(
+                                        requireContext(),
+                                        R.layout.simple_listitem_small,
+                                        p.map { if(it.type=="dir") "<${it.path.toString().substring(folderPath_len)}>" else " ${it.path.toString().substring(folderPath_len)}"  }
+                                    )
+                                }
+                            }
                     } else {
                         throwable?.printStackTrace()
                     }
@@ -96,7 +118,6 @@ class SnapshotFragment : Fragment() {
                                         backupManager.configure { config ->
                                             config
                                         }
-
                                         requireActivity().finish()
                                     } else {
                                         throwable.printStackTrace()
