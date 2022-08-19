@@ -7,9 +7,13 @@ import java.time.format.DateTimeFormatter
 
 object Formatters {
     private val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+    private val dateTimeShortFormatter = DateTimeFormatter.ofPattern("yy-MM-dd HH:mm:ss")
 
     fun dateTime(dateTime: ZonedDateTime): String =
         dateTime.withZoneSameInstant(ZoneId.systemDefault()).format(dateTimeFormatter)
+
+    fun dateTimeShort(dateTime: ZonedDateTime): String =
+        dateTime.withZoneSameInstant(ZoneId.systemDefault()).format(dateTimeShortFormatter)
 
     fun durationDaysHours(duration: Duration) = when {
         duration.toHours() < 24 -> "${duration.toHours()} hours"

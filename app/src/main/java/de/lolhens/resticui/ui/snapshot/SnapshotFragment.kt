@@ -36,7 +36,7 @@ class SnapshotFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentSnapshotBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
@@ -72,7 +72,7 @@ class SnapshotFragment : Fragment() {
                                     var x = 1
                                     val folderPath = binding.textPath.text
                                     for ( dir in p ) {
-                                        if( dir.path.toString().equals(folderPath) )
+                                        if(dir.path.toString() == folderPath)
                                             break
                                         else
                                             x++
@@ -83,7 +83,7 @@ class SnapshotFragment : Fragment() {
                                         p as ArrayList<ResticFile>,
                                         folderPath.length + 1
                                     )
-                                    binding.listFilesSnapshot.onItemClickListener = AdapterView.OnItemClickListener{ adapterView, view, i, l -> (binding.listFilesSnapshot.adapter as MyAdapter).triggerSort(binding.listFilesSnapshot) } }
+                                    binding.listFilesSnapshot.onItemClickListener = AdapterView.OnItemClickListener{ _, _, _, _ -> (binding.listFilesSnapshot.adapter as MyAdapter).triggerSort(binding.listFilesSnapshot) } }
                             }
                     } else {
                         throwable?.printStackTrace()
@@ -144,8 +144,8 @@ class SnapshotFragment : Fragment() {
 
 
 class MyAdapter(private val context: Context, private val arrayList: java.util.ArrayList<ResticFile>, private val FolderPathLen: Int ): BaseAdapter() {
-    private lateinit var pathname: TextView
-    private lateinit var filedate: TextView
+    private lateinit var pathName: TextView
+    private lateinit var fileDate: TextView
     private var sortOrderIsOrig = true
     private var arrayListShown = ArrayList(arrayList)
 
@@ -165,13 +165,12 @@ class MyAdapter(private val context: Context, private val arrayList: java.util.A
         return position.toLong()
     }
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View? {
-        var convertView = convertView
-        convertView = LayoutInflater.from(context).inflate(R.layout.listitem_file, parent, false)
-        pathname = convertView.findViewById(R.id.pathname)
-        filedate = convertView.findViewById(R.id.filedate)
+        val convertView = LayoutInflater.from(context).inflate(R.layout.listitem_file, parent, false)
+        pathName = convertView.findViewById(R.id.pathname)
+        fileDate = convertView.findViewById(R.id.filedate)
         val it = arrayListShown[position]
-        pathname.text = if(it.type=="dir") "<${it.path.toString().substring(FolderPathLen)}>" else " ${it.path.toString().substring(FolderPathLen)}"
-        filedate.text = "${Formatters.dateTime(it.mtime)}"
+        pathName.text = if(it.type=="dir") "<${it.path.toString().substring(FolderPathLen)}>" else " ${it.path.toString().substring(FolderPathLen)}"
+        fileDate.text = "${Formatters.dateTimeShort(it.mtime)}"
         return convertView
     }
 }
