@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:padding="4dp">
+
+    <TextView
+        android:id="@+id/pathname"
+        android:layout_width="0sp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:layout_weight="2"
+        android:textColor="#0277BD"
+        android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/filedate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="0"
+        android:background="#FFF9C4"
+        android:breakStrategy="simple"
+        android:fontFamily="@font/ubuntu_mono"
+        android:gravity="center_vertical|end"
+        android:includeFontPadding="false"
+        android:singleLine="true"
+        android:text="22-06-02 17:30:10"
+        android:textColor="#1565C0"
+        android:textSize="11sp" />
+</LinearLayout>
