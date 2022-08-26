@@ -36,13 +36,17 @@ data class Secret(val secret: String) {
 
             val keyFile = context.dataDir.resolve("key")
 
-            key = if (keyFile.exists()) {
+            if (keyFile.exists()) try {
                 val encodedKeyIv: ByteArray = readEncryptedFile(context, masterKey, keyFile)
-                AesKeyIv.fromByteArray(encodedKeyIv)
-            } else {
+                key = AesKeyIv.fromByteArray(encodedKeyIv)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+            if (key == null) {
                 val generatedKey = AesKeyIv.generate()
                 writeEncryptedFile(context, masterKey, keyFile, generatedKey.toByteArray())
-                generatedKey
+                key = generatedKey
             }
         }
 
@@ -75,6 +79,9 @@ data class Secret(val secret: String) {
             file: File,
             content: ByteArray
         ) {
+            if (file.exists())
+                file.delete()
+
             val encryptedFile = EncryptedFile.Builder(
                 context,
                 file,

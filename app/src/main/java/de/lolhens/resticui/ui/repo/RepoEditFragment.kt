@@ -34,7 +34,7 @@ class RepoEditFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentRepoEditBinding.inflate(inflater, container, false)
         val root: View = binding.root
 

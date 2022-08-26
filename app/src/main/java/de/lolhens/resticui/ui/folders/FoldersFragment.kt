@@ -25,7 +25,7 @@ class FoldersFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentFoldersBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
