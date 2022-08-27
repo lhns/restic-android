@@ -169,20 +169,20 @@ class SnapshotFilesListAdapter(
     }
 
     private var sortOrderDesc: Boolean? = null
-    private var sortedFiles: ArrayList<ResticFile> = files
+    private var sortedFiles: ArrayList<ResticFile> = ArrayList(files)
 
     fun triggerSort(listFilesSnapshot: ListView) {
         sortOrderDesc = when (sortOrderDesc) {
             null -> {
-                sortedFiles = files.sortedByDescending { it.mtime } as ArrayList<ResticFile>
+                sortedFiles.sortByDescending { it.mtime }
                 true
             }
             true -> {
-                sortedFiles = files.sortedBy { it.mtime } as ArrayList<ResticFile>
+                sortedFiles.sortBy { it.mtime }
                 false
             }
             false -> {
-                sortedFiles = files
+                sortedFiles = ArrayList(files)
                 null
             }
         }
