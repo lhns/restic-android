@@ -57,7 +57,7 @@ class FolderEditFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentFolderEditBinding.inflate(inflater, container, false)
         val root: View = binding.root
 

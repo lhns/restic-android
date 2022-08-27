@@ -36,7 +36,7 @@ class FolderFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentFolderBinding.inflate(inflater, container, false)
         val root: View = binding.root
 

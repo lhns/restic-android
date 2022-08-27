@@ -80,7 +80,7 @@ class BackupManager private constructor(context: Context) {
     ) {
         fun pendingIntent() = PendingIntent.getActivity(
             context,
-            0,
+            System.currentTimeMillis().toInt(),
             FolderActivity.intent(context, false, folderConfigId),
             PendingIntent.FLAG_UPDATE_CURRENT
         )

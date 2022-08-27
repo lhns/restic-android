@@ -42,6 +42,9 @@
             android:name=".BackupService"
             android:label="@string/text_backup_service"
             android:permission="android.permission.BIND_JOB_SERVICE" />
+        <meta-data
+            android:name="preloaded_fonts"
+            android:resource="@array/preloaded_fonts" />
     </application>
 
 </manifest>

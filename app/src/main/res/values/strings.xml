@@ -8,6 +8,7 @@
     <string name="text_about">About</string>
     <string name="text_snapshots">Snapshots</string>
     <string name="text_snapshot">Snapshot</string>
+    <string name="text_files">Files</string>
     <string name="text_schedule">Schedule</string>
     <string name="text_retain">Retain</string>
     <string name="text_saving">Saving…</string>
