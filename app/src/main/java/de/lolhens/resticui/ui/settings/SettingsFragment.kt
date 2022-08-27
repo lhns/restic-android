@@ -57,6 +57,7 @@ class SettingsFragment : Fragment() {
 
         val restic = BackupManager.instance(requireContext()).restic
 
+        // TODO: save to config
         binding.buttonHostnameEdit.setOnClickListener {
             InputDialogUtil.showInputTextDialog(
                 requireContext(),
@@ -73,6 +74,7 @@ class SettingsFragment : Fragment() {
 
         binding.textHostname.text = restic.hostname
 
+        // TODO: save to config
         binding.buttonDnsEdit.setOnClickListener {
             InputDialogUtil.showInputTextDialog(
                 requireContext(),

@@ -145,9 +145,18 @@ class BackupManager private constructor(context: Context) {
                     }
                 }
                 val details = if (activeBackup.progress == null) "" else {
+                    val ofTotal =
+                        if (activeBackup.progress.total_files != null) "/${activeBackup.progress.total_files}" else ""
+
+                    val unmodifiedNewChanged = listOf(
+                        if (activeBackup.summary.files_unmodified != 0L) "U:${activeBackup.summary.files_unmodified}" else "",
+                        if (activeBackup.summary.files_unmodified != 0L) "N:${activeBackup.summary.files_new}" else "",
+                        if (activeBackup.summary.files_unmodified != 0L) "C:${activeBackup.summary.files_changed}" else ""
+                    ).filter { it.isNotEmpty() }.joinToString("/")
+
                     listOf(
                         activeBackup.progress.timeElapsedString(),
-                        "${activeBackup.progress.files_done}${if (activeBackup.progress.total_files != null) "/${activeBackup.progress.total_files}" else ""} Files",
+                        "${activeBackup.progress.files_done}$ofTotal Files ($unmodifiedNewChanged)",
                         "${activeBackup.progress.bytesDoneString()}${if (activeBackup.progress.total_bytes != null) "/${activeBackup.progress.totalBytesString()}" else ""}"
                     ).joinToString(" | ")
                 }
