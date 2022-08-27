@@ -11,6 +11,7 @@ import android.widget.BaseAdapter
 import android.widget.ListView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.RecyclerView
 import de.lolhens.resticui.BackupManager
 import de.lolhens.resticui.R
 import de.lolhens.resticui.config.RepoConfigId
@@ -18,6 +19,7 @@ import de.lolhens.resticui.databinding.FragmentSnapshotBinding
 import de.lolhens.resticui.restic.ResticFile
 import de.lolhens.resticui.restic.ResticSnapshotId
 import de.lolhens.resticui.ui.Formatters
+import java.io.File
 
 class SnapshotFragment : Fragment() {
     private var _binding: FragmentSnapshotBinding? = null
@@ -62,34 +64,34 @@ class SnapshotFragment : Fragment() {
             resticRepo.cat(snapshotId).handle { snapshot, throwable ->
                 requireActivity().runOnUiThread {
                     if (snapshot != null) {
+                        val timeString = "Created on ${Formatters.dateTime(snapshot.time)}"
+                        val snapshotRootPath = snapshot.paths[0]
+
                         binding.textTime.visibility = VISIBLE
                         binding.textHostname.visibility = VISIBLE
-                        binding.textTime.visibility = VISIBLE
+                        binding.textPath.visibility = VISIBLE
 
-                        val snapshotRootPath = snapshot.paths[0].path
-                        binding.textTime.text = "Created on ${Formatters.dateTime(snapshot.time)}"
+                        binding.textTime.text = timeString
                         binding.textHostname.text = snapshot.hostname
-                        binding.textPath.text = snapshotRootPath
+                        binding.textPath.text = snapshotRootPath.path
 
-                        resticRepo.ls(snapshotId).handle { pair, throwable ->
+                        resticRepo.ls(snapshotId).handle { lsResult, throwable ->
                             requireActivity().runOnUiThread {
-                                if (pair != null) {
+                                if (lsResult != null) {
+                                    val (_, files) = lsResult
                                     binding.progressSnapshot.visibility = GONE
 
-                                    var p = pair.second.map { it }
-                                    var x = 1
-                                    for (dir in p) {
-                                        if (dir.path.toString() == snapshotRootPath)
-                                            break
-                                        else
-                                            x++
-                                    }
-                                    p = p.drop(x)
                                     binding.listFilesSnapshot.adapter = SnapshotFilesListAdapter(
                                         requireContext(),
-                                        p as ArrayList<ResticFile>,
-                                        snapshotRootPath.length + 1
+                                        ArrayList(
+                                            files.filter {
+                                                it.path.startsWith(snapshotRootPath) &&
+                                                        it.path.relativeTo(snapshotRootPath).path.isNotEmpty()
+                                            }
+                                        ),
+                                        snapshotRootPath
                                     )
+
                                     binding.listFilesSnapshot.onItemClickListener =
                                         AdapterView.OnItemClickListener { _, _, _, _ ->
                                             (binding.listFilesSnapshot.adapter as SnapshotFilesListAdapter)
@@ -156,46 +158,66 @@ class SnapshotFragment : Fragment() {
     }
 }
 
-
 class SnapshotFilesListAdapter(
     private val context: Context,
-    private val arrayList: java.util.ArrayList<ResticFile>,
-    private val FolderPathLen: Int
+    private val files: ArrayList<ResticFile>,
+    private val rootPath: File
 ) : BaseAdapter() {
-    private lateinit var pathName: TextView
-    private lateinit var fileDate: TextView
-    private var sortOrderIsOrig = true
-    private var arrayListShown = ArrayList(arrayList)
+    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val pathNameText: TextView = view.findViewById(R.id.pathname)
+        val fileDateText: TextView = view.findViewById(R.id.filedate)
+    }
+
+    private var sortOrderDesc: Boolean? = null
+    private var sortedFiles: ArrayList<ResticFile> = files
 
     fun triggerSort(listFilesSnapshot: ListView) {
-        if (sortOrderIsOrig) arrayListShown.sortByDescending { it.mtime }
-        else arrayListShown = ArrayList(arrayList)
-        sortOrderIsOrig = !sortOrderIsOrig
+        sortOrderDesc = when (sortOrderDesc) {
+            null -> {
+                sortedFiles = files.sortedByDescending { it.mtime } as ArrayList<ResticFile>
+                true
+            }
+            true -> {
+                sortedFiles = files.sortedBy { it.mtime } as ArrayList<ResticFile>
+                false
+            }
+            false -> {
+                sortedFiles = files
+                null
+            }
+        }
+
         listFilesSnapshot.invalidateViews()
     }
 
-    override fun getCount(): Int {
-        return arrayListShown.size
-    }
+    override fun getCount(): Int = sortedFiles.size
 
-    override fun getItem(position: Int): Any {
-        return position
-    }
+    override fun getItem(position: Int): Any = position
 
-    override fun getItemId(position: Int): Long {
-        return position.toLong()
-    }
+    override fun getItemId(position: Int): Long = position.toLong()
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View? {
-        val convertView =
-            LayoutInflater.from(context).inflate(R.layout.listitem_file, parent, false)
-        pathName = convertView.findViewById(R.id.pathname)
-        fileDate = convertView.findViewById(R.id.filedate)
-        val it = arrayListShown[position]
-        pathName.text = if (it.type == "dir") "<${
-            it.path.toString().substring(FolderPathLen)
-        }>" else " ${it.path.toString().substring(FolderPathLen)}"
-        fileDate.text = "${Formatters.dateTimeShort(it.mtime)}"
-        return convertView
+        lateinit var holder: RecyclerView.ViewHolder
+        val view =
+            if (convertView == null) {
+                val inflater = LayoutInflater.from(context)
+                val view = inflater.inflate(R.layout.listitem_file, parent, false)
+                holder = ViewHolder(view)
+                view.tag = holder
+                view
+            } else {
+                holder = convertView.tag as ViewHolder
+                convertView
+            }
+
+        val file = sortedFiles[position]
+        val pathString = file.path.relativeTo(rootPath).toString() +
+                (if (file.type == "dir") "/" else "")
+        val dateString = Formatters.dateTimeShort(file.mtime)
+
+        holder.pathNameText.text = pathString
+        holder.fileDateText.text = dateString
+
+        return view
     }
 }

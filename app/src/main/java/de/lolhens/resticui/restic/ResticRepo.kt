@@ -129,7 +129,7 @@ abstract class ResticRepo(
 
     fun ls(snapshotId: ResticSnapshotId): CompletableFuture<Pair<ResticSnapshot, List<ResticFile>>> =
         restic(
-            listOf("--json", "ls", snapshotId.id),
+            listOf("--json", "ls", snapshotId.id)
         ).thenApply { (out, _) ->
             val snapshotJson = out[0]
             val filesJson = out.drop(1)
