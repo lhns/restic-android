@@ -6,7 +6,9 @@ import kotlinx.serialization.json.Json
 @Serializable
 data class Config(
     val repos: List<RepoConfig>,
-    val folders: List<FolderConfig>
+    val folders: List<FolderConfig>,
+    val hostname: String?,
+    val nameServers: List<String>?
 ) {
     companion object {
         val format = Json {

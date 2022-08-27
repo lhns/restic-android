@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import de.lolhens.resticui.BackupManager
 import de.lolhens.resticui.databinding.FragmentSettingsBinding
-import de.lolhens.resticui.restic.ResticNameServers
 import de.lolhens.resticui.ui.InputDialogUtil
 
 class SettingsFragment : Fragment() {
@@ -57,7 +56,6 @@ class SettingsFragment : Fragment() {
 
         val restic = BackupManager.instance(requireContext()).restic
 
-        // TODO: save to config
         binding.buttonHostnameEdit.setOnClickListener {
             InputDialogUtil.showInputTextDialog(
                 requireContext(),
@@ -74,7 +72,6 @@ class SettingsFragment : Fragment() {
 
         binding.textHostname.text = restic.hostname
 
-        // TODO: save to config
         binding.buttonDnsEdit.setOnClickListener {
             InputDialogUtil.showInputTextDialog(
                 requireContext(),
@@ -87,7 +84,7 @@ class SettingsFragment : Fragment() {
                     else nameServersString.trim().split("\\s*,\\s*".toRegex())
                 binding.textDns.text = BackupManager.instance(requireContext()).setNameServers(
                     if (nameServers.isEmpty()) null
-                    else ResticNameServers.fromList(nameServers),
+                    else nameServers,
                     requireContext()
                 ).nameServers().joinToString(", ")
             }

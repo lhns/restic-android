@@ -49,21 +49,37 @@ class BackupManager private constructor(context: Context) {
     private lateinit var _restic: Restic
     val restic get() = _restic
     fun initRestic(context: Context) {
+        val nameServers = config.nameServers
+        val resticNameServers =
+            if (nameServers != null)
+                ResticNameServers.fromList(nameServers)
+            else
+                ResticNameServers.fromContext(context)
         _restic = Restic(
             ResticStorage.fromContext(context),
-            HostnameUtil.detectHostname(),
-            ResticNameServers.fromContext(context)
+            hostname = config.hostname ?: HostnameUtil.detectHostname(),
+            nameServers = resticNameServers
         )
     }
 
     fun setHostname(hostname: String?): String {
+        configure { config ->
+            config.copy(hostname = hostname)
+        }
         val hostname = hostname ?: HostnameUtil.detectHostname()
         _restic = _restic.withHostname(hostname)
         return hostname
     }
 
-    fun setNameServers(nameServers: ResticNameServers?, context: Context): ResticNameServers {
-        val nameServers = nameServers ?: ResticNameServers.fromContext(context)
+    fun setNameServers(nameServers: List<String>?, context: Context): ResticNameServers {
+        configure { config ->
+            config.copy(nameServers = nameServers)
+        }
+        val nameServers =
+            if (nameServers != null)
+                ResticNameServers.fromList(nameServers)
+            else
+                ResticNameServers.fromContext(context)
         _restic = _restic.withNameServers(nameServers)
         return nameServers
     }
@@ -93,14 +109,6 @@ class BackupManager private constructor(context: Context) {
                     return
                 else
                     lastMillis = nowMillis
-
-                // TODO: use somewhere
-                val details = if (activeBackup.progress == null) null else {
-                    """
-                    ${activeBackup.progress.files_done}${if (activeBackup.progress.total_files != null) " / ${activeBackup.progress.total_files}" else ""} Files
-                    ${activeBackup.progress.bytesDoneString()}${if (activeBackup.progress.total_bytes != null) " / ${activeBackup.progress.totalBytesString()}" else ""}
-                    """.trimIndent()
-                }
 
                 val progress = activeBackup.progress?.percentDoneString() ?: "0%"
 
