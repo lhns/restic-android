@@ -59,6 +59,7 @@ android {
             useLegacyPackaging true
         }
     }
+    namespace 'de.lolhens.resticui'
 }
 
 dependencies {
