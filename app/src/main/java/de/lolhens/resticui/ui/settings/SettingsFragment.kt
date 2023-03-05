@@ -83,8 +83,7 @@ class SettingsFragment : Fragment() {
                     if (nameServersString.isBlank()) emptyList()
                     else nameServersString.trim().split("\\s*,\\s*".toRegex())
                 binding.textDns.text = BackupManager.instance(requireContext()).setNameServers(
-                    if (nameServers.isEmpty()) null
-                    else nameServers,
+                    nameServers.ifEmpty { null },
                     requireContext()
                 ).nameServers().joinToString(", ")
             }
