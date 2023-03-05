@@ -18,7 +18,9 @@ class ConfigManager(
 
     private fun defaultConfig(): Config = Config(
         emptyList(),
-        emptyList()
+        emptyList(),
+        null,
+        null
     )
 
     private fun readEncryptedConfig(context: Context, file: File): Config {

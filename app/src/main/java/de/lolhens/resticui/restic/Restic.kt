@@ -13,9 +13,16 @@ import java.security.cert.X509Certificate
 import java.util.concurrent.CompletableFuture
 
 class Restic(
-    private val storage: ResticStorage,
-    private val nameServers: ResticNameServers
+    val storage: ResticStorage,
+    val hostname: String,
+    val nameServers: ResticNameServers
 ) {
+    fun withHostname(hostname: String): Restic =
+        Restic(storage, hostname, nameServers)
+
+    fun withNameServers(nameServers: ResticNameServers): Restic =
+        Restic(storage, hostname, nameServers)
+
     private fun executable(name: String) =
         storage.lib().resolve("libdata_$name.so")
 
