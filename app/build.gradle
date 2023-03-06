@@ -15,12 +15,12 @@ def getVersion = { ->
 }
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
 
     defaultConfig {
         applicationId "de.lolhens.resticui"
         minSdkVersion 24
-        targetSdkVersion 30
+        targetSdkVersion 31
         versionCode getBuildNumber()
         versionName getVersion()
 
@@ -59,6 +59,7 @@ android {
             useLegacyPackaging true
         }
     }
+    namespace 'de.lolhens.resticui'
 }
 
 dependencies {
