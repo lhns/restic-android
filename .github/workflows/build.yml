@@ -37,7 +37,7 @@ jobs:
           else
             ./gradlew assembleDebug
           fi
-          mv app/build/outputs/apk/release/*.apk "restic-android.apk"
+          mv app/build/outputs/apk/*/*.apk "restic-android.apk"
       - uses: actions/upload-artifact@v3
         with:
           path: '*.apk'
