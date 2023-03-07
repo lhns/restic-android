@@ -15,12 +15,12 @@ def getVersion = { ->
 }
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion 33
 
     defaultConfig {
         applicationId "de.lolhens.resticui"
         minSdkVersion 24
-        targetSdkVersion 31
+        targetSdkVersion 33
         versionCode getBuildNumber()
         versionName getVersion()
 
