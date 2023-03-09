@@ -73,7 +73,7 @@ class FolderFragment : Fragment() {
                     if (folder.keepLast == null) "" else "in last ${folder.keepLast}",
                     if (folder.keepWithin == null) "" else "within ${
                         Formatters.durationDaysHours(
-                            folder.keepWithin
+                            folder.keepWithin.duration
                         )
                     }"
                 ).filter { it.isNotEmpty() }.joinToString(" and ")
@@ -82,9 +82,9 @@ class FolderFragment : Fragment() {
             val resticRepo = repo.repo(backupManager.restic)
 
             backupManager.observeConfig(viewLifecycleOwner) { config ->
-                val folder = config.folders.find { it.id == folderId }!!
+                val folder = config.folders.find { it.id == folderId }
 
-                val lastSuccessfulBackup = folder.lastBackup(filterSuccessful = true)
+                val lastSuccessfulBackup = folder?.lastBackup(filterSuccessful = true)
 
                 binding.textLastBackup.text =
                     if (lastSuccessfulBackup == null) ""
@@ -95,8 +95,11 @@ class FolderFragment : Fragment() {
                         binding.progressFolderSnapshots.visibility = GONE
 
                         val snapshots =
-                            snapshots?.filter { it.paths.contains(folder.path) }?.reversed()
-                                ?: emptyList()
+                            if (folder != null)
+                                snapshots?.filter { it.paths.contains(folder.path) }?.reversed()
+                                    ?: emptyList()
+                            else
+                                emptyList()
 
                         snapshotIds = snapshots.map { it.id }
                         binding.listFolderSnapshots.adapter = ArrayAdapter(

@@ -22,15 +22,17 @@ object ZonedDateTimeSerializer : KSerializer<ZonedDateTime> {
         ZonedDateTime.parse(decoder.decodeString())
 }
 
-object DurationSerializer : KSerializer<Duration> {
+data class HourDuration(val duration: Duration)
+
+object HourDurationSerializer : KSerializer<HourDuration> {
     override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor((Duration::class).simpleName!!, PrimitiveKind.LONG)
+        PrimitiveSerialDescriptor((HourDuration::class).simpleName!!, PrimitiveKind.LONG)
 
-    override fun serialize(encoder: Encoder, value: Duration) =
-        encoder.encodeLong(value.toHours())
+    override fun serialize(encoder: Encoder, value: HourDuration) =
+        encoder.encodeLong(value.duration.toHours())
 
-    override fun deserialize(decoder: Decoder): Duration =
-        Duration.ofHours(decoder.decodeLong())
+    override fun deserialize(decoder: Decoder): HourDuration =
+        HourDuration(Duration.ofHours(decoder.decodeLong()))
 }
 
 object FileSerializer : KSerializer<File> {

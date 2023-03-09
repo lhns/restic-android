@@ -269,7 +269,7 @@ class BackupManager private constructor(context: Context) {
 
             val historyEntry = BackupHistoryEntry(
                 timestamp = ZonedDateTime.now(),
-                duration = Duration.ZERO,
+                duration = HourDuration(Duration.ZERO),
                 scheduled = scheduled,
                 cancelled = cancelled,
                 snapshotId = summary?.snapshot_id,
@@ -291,7 +291,7 @@ class BackupManager private constructor(context: Context) {
                 if (removeOld && throwable == null && (folder.keepLast != null || folder.keepWithin != null)) {
                     resticRepo.forget(
                         folder.keepLast,
-                        folder.keepWithin,
+                        folder.keepWithin?.duration,
                         prune = true
                     ).handle { _, _ ->
                         callback()

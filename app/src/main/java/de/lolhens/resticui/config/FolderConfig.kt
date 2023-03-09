@@ -1,11 +1,11 @@
 package de.lolhens.resticui.config
 
-import de.lolhens.resticui.DurationSerializer
 import de.lolhens.resticui.FileSerializer
+import de.lolhens.resticui.HourDuration
+import de.lolhens.resticui.HourDurationSerializer
 import de.lolhens.resticui.ui.folder.FolderEditFragment
 import kotlinx.serialization.Serializable
 import java.io.File
-import java.time.Duration
 import java.time.ZonedDateTime
 
 @Serializable
@@ -15,7 +15,7 @@ data class FolderConfig(
     val path: @Serializable(with = FileSerializer::class) File,
     val schedule: String,
     val keepLast: Int? = null,
-    val keepWithin: @Serializable(with = DurationSerializer::class) Duration? = null,
+    val keepWithin: @Serializable(with = HourDurationSerializer::class) HourDuration? = null,
     val history: List<BackupHistoryEntry> = emptyList()
 ) {
     fun repo(config: Config): RepoConfig? = config.repos.find { it.base.id == repoId }
