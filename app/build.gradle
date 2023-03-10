@@ -21,7 +21,7 @@ android {
         applicationId "de.lolhens.resticui"
         minSdkVersion 24
         targetSdkVersion 33
-        versionCode getBuildNumber()
+        versionCode getBuildNumber() + 1941588000
         versionName getVersion()
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
