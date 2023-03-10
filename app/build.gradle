@@ -22,7 +22,7 @@ android {
         applicationId "de.lolhens.resticui"
         minSdkVersion 24
         targetSdkVersion 33
-        versionCode getVersionCode() ?: 1
+        versionCode getVersionCodeOrNull() ?: 1
         versionName getVersionOrNull() ?: "0.0.1-SNAPSHOT"
         setProperty('archivesBaseName', [
                 "restic-android",
