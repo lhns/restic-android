@@ -26,11 +26,11 @@ jobs:
       - name: Build with Gradle
         env:
           CI_VERSION: ${{ github.ref }}
-          CI_BUILD_NUMBER: ${{ github.run_number }}
           RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
           RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
+          export GIT_COMMIT_COUNT="$(git rev-list --all --count)"
           export RELEASE_STORE_FILE="$(readlink -f keystore.jks)"
           if [ -e keystore.jks ]; then
             ./gradlew assembleRelease
