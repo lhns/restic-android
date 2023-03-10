@@ -1,6 +1,6 @@
 # restic-android (Unofficial)
 
-[![build](https://github.com/lhns/restic-android/actions/workflows/build.yml/badge.svg)](https://github.com/lhns/restic-android/actions/workflows/build.yml)
+[![Docker Workflow](https://github.com/lhns/restic-android/actions/workflows/build.yml/badge.svg)](https://github.com/lhns/restic-android/actions/workflows/build.yml)
 [![Release Notes](https://img.shields.io/github/release/lhns/restic-android.svg?maxAge=3600)](https://github.com/lhns/restic-android/releases/latest)
 [![Restic@IoD](https://img.shields.io/endpoint?url=https://apt.izzysoft.de/fdroid/api/v1/shield/de.lolhens.resticui)](https://apt.izzysoft.de/fdroid/index/apk/de.lolhens.resticui)
 [![GNU General Public License, Version 2](https://img.shields.io/github/license/lhns/restic-android.svg?maxAge=3600)](https://www.gnu.org/licenses/gpl-2.0.html)
