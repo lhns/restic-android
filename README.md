@@ -1,11 +1,11 @@
 # restic-android (Unofficial)
 
-[![Test Workflow](https://github.com/LolHens/restic-android/workflows/build/badge.svg)](https://github.com/LolHens/restic-android/actions?query=workflow%3Abuild)
-[![Release Notes](https://img.shields.io/github/release/LolHens/restic-android.svg?maxAge=3600)](https://github.com/LolHens/restic-android/releases/latest)
+[![build](https://github.com/lhns/restic-android/actions/workflows/build.yml/badge.svg)](https://github.com/lhns/restic-android/actions/workflows/build.yml)
+[![Release Notes](https://img.shields.io/github/release/lhns/restic-android.svg?maxAge=3600)](https://github.com/lhns/restic-android/releases/latest)
 [![Restic@IoD](https://img.shields.io/endpoint?url=https://apt.izzysoft.de/fdroid/api/v1/shield/de.lolhens.resticui)](https://apt.izzysoft.de/fdroid/index/apk/de.lolhens.resticui)
-[![GNU General Public License, Version 2](https://img.shields.io/github/license/LolHens/restic-android.svg?maxAge=3600)](https://www.gnu.org/licenses/gpl-2.0.html)
+[![GNU General Public License, Version 2](https://img.shields.io/github/license/lhns/restic-android.svg?maxAge=3600)](https://www.gnu.org/licenses/gpl-2.0.html)
 
-![Icon](https://raw.githubusercontent.com/LolHens/restic-android/main/screenshots/icon.png)
+![Icon](https://raw.githubusercontent.com/lhns/restic-android/main/screenshots/icon.png)
 
 This project aims to make Backups on Android easy and fast using [Restic](https://restic.net).
 
@@ -16,7 +16,7 @@ This project is still in a very early state and contributions are welcome!
 ### Disclaimer
 This project is **not** an official app made by the restic team.
 
-Please report any issues on the [restic-android issue tracker](https://github.com/LolHens/restic-android/issues).
+Please report any issues on the [restic-android issue tracker](https://github.com/lhns/restic-android/issues).
 
 ## Features
 - Manage Restic Repositories (S3, B2, Rest are currently the only supported protocols)
@@ -34,14 +34,14 @@ Please report any issues on the [restic-android issue tracker](https://github.co
 - Backup Rules (only backup when charging or only use wifi etc.)
 
 ## Screenshots
-![](https://raw.githubusercontent.com/LolHens/restic-android/main/screenshots/repos.png)
-![](https://raw.githubusercontent.com/LolHens/restic-android/main/screenshots/repo-edit.png)
-![](https://raw.githubusercontent.com/LolHens/restic-android/main/screenshots/repo.png)
-![](https://raw.githubusercontent.com/LolHens/restic-android/main/screenshots/folders.png)
-![](https://raw.githubusercontent.com/LolHens/restic-android/main/screenshots/folder-edit.png)
-![](https://raw.githubusercontent.com/LolHens/restic-android/main/screenshots/folder.png)
-![](https://raw.githubusercontent.com/LolHens/restic-android/main/screenshots/snapshot.png)
-![](https://raw.githubusercontent.com/LolHens/restic-android/main/screenshots/about.png)
+![](https://raw.githubusercontent.com/lhns/restic-android/main/screenshots/repos.png)
+![](https://raw.githubusercontent.com/lhns/restic-android/main/screenshots/repo-edit.png)
+![](https://raw.githubusercontent.com/lhns/restic-android/main/screenshots/repo.png)
+![](https://raw.githubusercontent.com/lhns/restic-android/main/screenshots/folders.png)
+![](https://raw.githubusercontent.com/lhns/restic-android/main/screenshots/folder-edit.png)
+![](https://raw.githubusercontent.com/lhns/restic-android/main/screenshots/folder.png)
+![](https://raw.githubusercontent.com/lhns/restic-android/main/screenshots/snapshot.png)
+![](https://raw.githubusercontent.com/lhns/restic-android/main/screenshots/about.png)
 
 ## Notice
 See the file called NOTICE.
