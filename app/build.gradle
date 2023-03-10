@@ -4,10 +4,10 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.serialization' version '1.8.10'
 }
 
-def getVersionCode = { ->
+def getVersionCodeOrNull = { ->
     def versionCode = System.getenv('GIT_COMMIT_COUNT')?.toInteger()
     if (versionCode != null) versionCode + 1941588398
-    else 1
+    else null
 }
 
 def getVersionOrNull = { ->
@@ -22,7 +22,7 @@ android {
         applicationId "de.lolhens.resticui"
         minSdkVersion 24
         targetSdkVersion 33
-        versionCode getVersionCode()
+        versionCode getVersionCode() ?: 1
         versionName getVersionOrNull() ?: "0.0.1-SNAPSHOT"
         setProperty('archivesBaseName', [
                 "restic-android",
