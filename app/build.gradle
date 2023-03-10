@@ -5,7 +5,9 @@ plugins {
 }
 
 def getVersionCode = { ->
-    (System.getenv('GIT_COMMIT_COUNT')?.toInteger() ?: 1) + 1941588398
+    def versionCode = System.getenv('GIT_COMMIT_COUNT')?.toInteger()
+    if (versionCode != null) versionCode + 1941588398
+    else 1
 }
 
 def getVersionOrNull = { ->
