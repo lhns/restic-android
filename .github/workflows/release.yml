@@ -29,7 +29,7 @@ jobs:
         run: |
           export GIT_COMMIT_COUNT="$(git rev-list --all --count)"
           export RELEASE_STORE_FILE="$(readlink -f keystore.jks)"
-          echo "GIT_COMMIT_COUNT=$GIT_COMMIT_COUNT"
+          echo "GIT_COMMIT_COUNT: $GIT_COMMIT_COUNT"
           ./gradlew assembleRelease
           mv app/build/outputs/apk/*/*.apk .
       - uses: actions/upload-artifact@v3
