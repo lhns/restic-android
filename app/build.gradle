@@ -5,28 +5,30 @@ plugins {
 }
 
 def getVersionCode = { ->
-    System.getenv('GIT_COMMIT_COUNT')?.toInteger() + 1941588398 ?: 1
+    (System.getenv('GIT_COMMIT_COUNT')?.toInteger() ?: 1) + 1941588398
 }
 
-def getVersion = { ->
+def getVersionOrNull = { ->
     def matcher = System.getenv('CI_VERSION') =~ /refs\/tags\/(.*)/
     if (matcher.find()) matcher.group(1)
-    else "0.0.1-SNAPSHOT"
+    else null
 }
 
 android {
     compileSdkVersion 33
-
     defaultConfig {
         applicationId "de.lolhens.resticui"
         minSdkVersion 24
         targetSdkVersion 33
         versionCode getVersionCode()
-        versionName getVersion()
+        versionName getVersionOrNull() ?: "0.0.1-SNAPSHOT"
+        setProperty('archivesBaseName', [
+                "restic-android",
+                getVersionOrNull()?.toString()
+        ].findAll({ it != null }).join("-"))
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
-
     signingConfigs {
         release {
             storeFile file(System.env.RELEASE_STORE_FILE ?: "null")
@@ -53,10 +55,15 @@ android {
     buildFeatures {
         viewBinding true
     }
-
     packagingOptions {
         jniLibs {
             useLegacyPackaging true
+        }
+    }
+    splits {
+        abi {
+            enable true
+            universalApk true
         }
     }
     namespace 'de.lolhens.resticui'

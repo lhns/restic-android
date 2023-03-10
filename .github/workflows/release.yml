@@ -28,7 +28,7 @@ jobs:
           export GIT_COMMIT_COUNT="$(git rev-list --all --count)"
           export RELEASE_STORE_FILE="$(readlink -f keystore.jks)"
           ./gradlew assembleRelease
-          mv app/build/outputs/apk/release/*.apk "restic-android-${CI_VERSION#'refs/tags/'}.apk"
+          mv app/build/outputs/apk/*/*.apk .
       - uses: actions/upload-artifact@v3
         with:
           path: '*.apk'
