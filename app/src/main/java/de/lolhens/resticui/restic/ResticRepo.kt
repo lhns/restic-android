@@ -123,12 +123,20 @@ abstract class ResticRepo(
         }
 
     fun backup(
-        path: File,
+        paths: List<File>,
         onProgress: (ResticBackupProgress) -> Unit,
         cancel: CompletableFuture<Unit>? = null
-    ): CompletableFuture<ResticBackupSummary> =
-        restic(
-            listOf("--json", "backup", "--host", restic.hostname, path.absolutePath),
+    ): CompletableFuture<ResticBackupSummary> {
+        require(paths.isNotEmpty())
+        return restic(
+            listOf(
+                "--json",
+                "backup",
+                "--host",
+                restic.hostname
+            ).plus(
+                paths.map { it.absolutePath }
+            ),
             filterOut = { line ->
                 val isStatus = line.contains("\"message_type\":\"status\"")
                 if (isStatus) {
@@ -142,4 +150,5 @@ abstract class ResticRepo(
             val json = out.joinToString("\n")
             format.decodeFromString<ResticBackupSummary>(json)
         }
+    }
 }

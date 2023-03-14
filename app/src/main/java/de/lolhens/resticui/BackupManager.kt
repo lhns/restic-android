@@ -248,7 +248,7 @@ class BackupManager private constructor(context: Context) {
         updateNotification(context, folder.id, activeBackup)
 
         resticRepo.backup(
-            folder.path,
+            listOf(folder.path),
             { progress ->
                 val activeBackupProgress = activeBackupLiveData.value!!.progress(progress)
                 activeBackupLiveData.postValue(activeBackupProgress)

@@ -12,6 +12,7 @@ import java.time.ZonedDateTime
 data class FolderConfig(
     val id: FolderConfigId,
     val repoId: RepoConfigId,
+    // TODO: support multiple paths
     val path: @Serializable(with = FileSerializer::class) File,
     val schedule: String,
     val keepLast: Int? = null,
