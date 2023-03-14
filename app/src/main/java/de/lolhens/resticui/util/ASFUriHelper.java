@@ -7,9 +7,17 @@ import android.net.Uri;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import androidx.documentfile.provider.DocumentFile;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 // https://gist.github.com/asifmujteba/d89ba9074bc941de1eaa#file-asfurihelper
 public class ASFUriHelper {
+
+    private static final List<String> documentUriTypes = Arrays.asList(Environment.DIRECTORY_MUSIC, Environment.DIRECTORY_PODCASTS, Environment.DIRECTORY_RINGTONES, Environment.DIRECTORY_ALARMS, Environment.DIRECTORY_NOTIFICATIONS, Environment.DIRECTORY_PICTURES, Environment.DIRECTORY_MOVIES, Environment.DIRECTORY_DOWNLOADS, Environment.DIRECTORY_DCIM, Environment.DIRECTORY_DOCUMENTS);
+
     public static String getPath(final Context context, final Uri uri) {
         if (DocumentsContract.isDocumentUri(context, uri)) { // DocumentProvider
             if (isExternalStorageDocument(uri)) { // ExternalStorageProvider
@@ -23,9 +31,24 @@ public class ASFUriHelper {
                     } else {
                         return Environment.getExternalStorageDirectory() + "/";
                     }
+                } else {
+                    final DocumentFile documentUriRoot = DocumentFile.fromTreeUri(context, DocumentsContract.buildTreeDocumentUri(
+                            uri.getAuthority(), type + ":"));
+                    if (documentUriRoot != null && documentUriRoot.exists() && ASFUriHelper.documentUriTypes.contains(documentUriRoot.getName())) {
+                        final String basePath = Environment.getExternalStoragePublicDirectory(documentUriRoot.getName()).getAbsolutePath();
+                        final String fullPath;
+                        if (split.length > 1)
+                            fullPath = basePath + "/" + split[1];
+                        else {
+                            fullPath = basePath + "/";
+                        }
+                        if (new File(fullPath).exists()) {
+                            return fullPath;
+                        }
+                    }
+
                 }
 
-                // TODO handle non-primary volumes
             } else if (isDownloadsDocument(uri)) { // DownloadsProvider
                 try {
                     final Uri contentUri = ContentUris.withAppendedId(
