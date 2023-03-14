@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import de.lolhens.resticui.BackupManager
 import de.lolhens.resticui.databinding.FragmentSettingsBinding
 import de.lolhens.resticui.ui.InputDialogUtil
+import de.lolhens.resticui.util.HostnameUtil
 
 class SettingsFragment : Fragment() {
     private var _binding: FragmentSettingsBinding? = null
@@ -66,7 +67,9 @@ class SettingsFragment : Fragment() {
                 binding.textHostname.text = BackupManager.instance(requireContext()).setHostname(
                     if (hostname.isBlank()) null
                     else hostname.trim()
-                )
+                ) {
+                    HostnameUtil.detectHostname(requireContext())
+                }
             }
         }
 

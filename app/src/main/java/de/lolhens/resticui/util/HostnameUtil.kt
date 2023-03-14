@@ -1,17 +1,26 @@
 package de.lolhens.resticui.util
 
+import android.Manifest
 import android.bluetooth.BluetoothAdapter
+import android.content.Context
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
 
 object HostnameUtil {
     private const val DEFAULT_HOSTNAME = "android-device"
 
-    fun detectHostname(): String {
-        val blueToothAdapter = BluetoothAdapter.getDefaultAdapter()
+    fun detectHostname(context: Context): String {
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.BLUETOOTH_CONNECT
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
 
-        if (blueToothAdapter != null) {
-            // Some Devices do not have a BluetoothAdapter e.g. the Android Emulator. For this case we use a default
-            // value
-            return BluetoothAdapter.getDefaultAdapter().name
+            // Some Devices do not have a BluetoothAdapter e.g. the Android Emulator
+            if (bluetoothAdapter != null) {
+                return bluetoothAdapter.name
+            }
         }
 
         return DEFAULT_HOSTNAME

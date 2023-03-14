@@ -57,16 +57,16 @@ class BackupManager private constructor(context: Context) {
                 ResticNameServers.fromContext(context)
         _restic = Restic(
             ResticStorage.fromContext(context),
-            hostname = config.hostname ?: HostnameUtil.detectHostname(),
+            hostname = config.hostname ?: HostnameUtil.detectHostname(context),
             nameServers = resticNameServers
         )
     }
 
-    fun setHostname(hostname: String?): String {
+    fun setHostname(hostname: String?, defaultHostname: () -> String): String {
         configure { config ->
             config.copy(hostname = hostname)
         }
-        val hostname = hostname ?: HostnameUtil.detectHostname()
+        val hostname = hostname ?: defaultHostname()
         _restic = _restic.withHostname(hostname)
         return hostname
     }
