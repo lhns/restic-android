@@ -5,7 +5,6 @@ import android.view.*
 import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
 import de.lolhens.resticui.BackupManager
-import de.lolhens.resticui.HourDuration
 import de.lolhens.resticui.R
 import de.lolhens.resticui.config.FolderConfig
 import de.lolhens.resticui.config.FolderConfigId
@@ -110,7 +109,7 @@ class FolderEditFragment : Fragment() {
             binding.editFolder.setText(folder.path.path)
             binding.spinnerSchedule.setSelection(schedules.indexOfFirst { it.first == folder.schedule })
             val scheduleIndex = retainProfiles.indexOfFirst {
-                it.toLong() == folder.keepWithin?.duration?.toHours()
+                it.toLong() == folder.keepWithin?.toHours()
             }
             binding.spinnerRetainWithin.setSelection(if (scheduleIndex == -1) 0 else scheduleIndex)
         }
@@ -134,7 +133,7 @@ class FolderEditFragment : Fragment() {
                 val schedule = binding.spinnerSchedule.selectedItem?.toString()
                 val keepWithin =
                     if (retainProfiles[binding.spinnerRetainWithin.selectedItemPosition] < 0) null
-                    else HourDuration(Duration.ofHours(retainProfiles[binding.spinnerRetainWithin.selectedItemPosition].toLong()))
+                    else Duration.ofHours(retainProfiles[binding.spinnerRetainWithin.selectedItemPosition].toLong())
 
                 if (
                     repo != null &&

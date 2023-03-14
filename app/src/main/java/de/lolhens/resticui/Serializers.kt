@@ -6,6 +6,8 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.long
 import java.io.File
 import java.net.URI
 import java.time.Duration
@@ -22,17 +24,21 @@ object ZonedDateTimeSerializer : KSerializer<ZonedDateTime> {
         ZonedDateTime.parse(decoder.decodeString())
 }
 
-data class HourDuration(val duration: Duration)
-
-object HourDurationSerializer : KSerializer<HourDuration> {
+object DurationSerializer : KSerializer<Duration> {
     override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor((HourDuration::class).simpleName!!, PrimitiveKind.LONG)
+        PrimitiveSerialDescriptor("Custom${(Duration::class).simpleName!!}", PrimitiveKind.STRING)
 
-    override fun serialize(encoder: Encoder, value: HourDuration) =
-        encoder.encodeLong(value.duration.toHours())
+    override fun serialize(encoder: Encoder, value: Duration) =
+        encoder.encodeString("${value.toMillis()}ms")
 
-    override fun deserialize(decoder: Decoder): HourDuration =
-        HourDuration(Duration.ofHours(decoder.decodeLong()))
+    override fun deserialize(decoder: Decoder): Duration {
+        val value = decoder.decodeSerializableValue(JsonPrimitive.serializer())
+        if (value.isString && value.content.endsWith("ms")) {
+            return Duration.ofMillis(value.content.dropLast(2).toLong())
+        } else {
+            return Duration.ofHours(value.long)
+        }
+    }
 }
 
 object FileSerializer : KSerializer<File> {

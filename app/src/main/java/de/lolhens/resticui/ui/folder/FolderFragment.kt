@@ -73,7 +73,7 @@ class FolderFragment : Fragment() {
                     if (folder.keepLast == null) "" else "in last ${folder.keepLast}",
                     if (folder.keepWithin == null) "" else "within ${
                         Formatters.durationDaysHours(
-                            folder.keepWithin.duration
+                            folder.keepWithin
                         )
                     }"
                 ).filter { it.isNotEmpty() }.joinToString(" and ")

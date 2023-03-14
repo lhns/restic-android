@@ -247,6 +247,8 @@ class BackupManager private constructor(context: Context) {
 
         updateNotification(context, folder.id, activeBackup)
 
+        val beforeBackup = ZonedDateTime.now()
+
         resticRepo.backup(
             listOf(folder.path),
             { progress ->
@@ -267,9 +269,13 @@ class BackupManager private constructor(context: Context) {
                 if (throwable == null || cancelled) null
                 else throwable.message
 
+            val afterBackup = ZonedDateTime.now()
+
             val historyEntry = BackupHistoryEntry(
-                timestamp = ZonedDateTime.now(),
-                duration = HourDuration(Duration.ZERO),
+                timestamp = afterBackup,
+                duration = Duration.ofMillis(
+                    afterBackup.toInstant().toEpochMilli() - beforeBackup.toInstant().toEpochMilli()
+                ),
                 scheduled = scheduled,
                 cancelled = cancelled,
                 snapshotId = summary?.snapshot_id,
@@ -277,9 +283,9 @@ class BackupManager private constructor(context: Context) {
             )
 
             configure { config ->
-                config.copy(folders = config.folders.map { folder ->
-                    if (folder.id == folder.id) folder.plusHistoryEntry(historyEntry)
-                    else folder
+                config.copy(folders = config.folders.map { currentFolder ->
+                    if (currentFolder.id == folder.id) currentFolder.plusHistoryEntry(historyEntry)
+                    else currentFolder
                 })
             }
 
@@ -291,7 +297,7 @@ class BackupManager private constructor(context: Context) {
                 if (removeOld && throwable == null && (folder.keepLast != null || folder.keepWithin != null)) {
                     resticRepo.forget(
                         folder.keepLast,
-                        folder.keepWithin?.duration,
+                        folder.keepWithin,
                         prune = true
                     ).handle { _, _ ->
                         callback()
