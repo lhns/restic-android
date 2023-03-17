@@ -7,7 +7,6 @@ import android.content.Context
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.observe
 import de.lolhens.resticui.config.*
 import de.lolhens.resticui.restic.Restic
 import de.lolhens.resticui.restic.ResticException
@@ -98,7 +97,7 @@ class BackupManager private constructor(context: Context) {
             context,
             System.currentTimeMillis().toInt(),
             FolderActivity.intent(context, false, folderConfigId),
-            PendingIntent.FLAG_UPDATE_CURRENT
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
         when {
