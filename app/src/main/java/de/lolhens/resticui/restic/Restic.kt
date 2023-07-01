@@ -44,6 +44,14 @@ class Restic(
     private val loader = executable("loader")
     private val loader32 = executable("loader32")
 
+    private fun withRoot(args: List<String>): List<String> =
+        listOf(
+            "su",
+            "-c",
+            args.joinToString(" ") { arg -> "'" + arg.replace("'", "'\"'\"'") + "'" },
+            "root"
+        )
+
     private fun withProot(
         binds: List<Pair<String, String>>,
         command: List<String>
