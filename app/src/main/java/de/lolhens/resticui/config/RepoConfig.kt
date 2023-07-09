@@ -108,14 +108,16 @@ abstract class RepoParams {
 data class S3RepoParams(
     val s3Url: @Serializable(with = URISerializer::class) URI,
     val accessKeyId: String,
-    val secretAccessKey: Secret
+    val secretAccessKey: Secret,
+    val s3DefaultRegion: String
 ) : RepoParams() {
     override fun repo(baseConfig: RepoBaseConfig, restic: Restic): ResticRepo = ResticRepoS3(
         restic,
         baseConfig.password.secret,
         s3Url,
         accessKeyId,
-        secretAccessKey.secret
+        secretAccessKey.secret,
+        s3DefaultRegion
     )
 }
 

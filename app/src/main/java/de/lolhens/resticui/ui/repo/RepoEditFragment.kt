@@ -84,6 +84,7 @@ class RepoEditFragment : Fragment() {
                     binding.editRepoS3Parameters.editS3Uri.setText(s3RepoParams.s3Url.toString())
                     binding.editRepoS3Parameters.editS3AccessKeyId.setText(s3RepoParams.accessKeyId)
                     binding.editRepoS3Parameters.editS3SecretAccessKey.setText(s3RepoParams.secretAccessKey.secret)
+                    binding.editRepoS3Parameters.editS3DefaultRegion.setText(s3RepoParams.s3DefaultRegion.toString())
                 }
                 RepoType.Rest -> {
                     val restRepoParams = repo.params as RestRepoParams
@@ -221,7 +222,8 @@ class RepoEditFragment : Fragment() {
                     S3RepoParams(
                         s3Url = URI(binding.editRepoS3Parameters.editS3Uri.text.toString()),
                         accessKeyId = binding.editRepoS3Parameters.editS3AccessKeyId.text.toString(),
-                        secretAccessKey = Secret(binding.editRepoS3Parameters.editS3SecretAccessKey.text.toString())
+                        secretAccessKey = Secret(binding.editRepoS3Parameters.editS3SecretAccessKey.text.toString()),
+                        s3DefaultRegion = binding.editRepoS3Parameters.editS3DefaultRegion.text.toString()
                     )
                 )
             }

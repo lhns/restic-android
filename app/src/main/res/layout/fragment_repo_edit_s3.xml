@@ -8,7 +8,7 @@
     <androidx.constraintlayout.widget.Group
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="text_s3_uri, edit_s3_uri, text_access_key_id, edit_s3_access_key_id, text_secret_access_key, edit_s3_secret_access_key"
+        app:constraint_referenced_ids="text_s3_uri, edit_s3_uri, text_access_key_id, edit_s3_access_key_id, text_secret_access_key, edit_s3_secret_access_key, text_s3_default_region, edit_s3_default_region"
         android:id="@+id/repo_edit_s3_group" />
 
     <TextView
@@ -81,11 +81,35 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
         android:layout_marginEnd="32dp"
-        android:layout_marginBottom="16dp"
         android:ems="10"
         android:inputType="textPassword"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/text_secret_access_key" />
+
+    <TextView
+        android:id="@+id/text_s3_default_region"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:text="@string/repo_edit_s3_default_region_title"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edit_s3_secret_access_key" />
+
+    <EditText
+        android:id="@+id/edit_s3_default_region"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="16dp"
+        android:ems="10"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/text_s3_default_region" />
 </androidx.constraintlayout.widget.ConstraintLayout>
