@@ -64,4 +64,5 @@
     <string name="repo_edit_s3_access_key_id_error_mandatory">S3 Access Key ID needed</string>
     <string name="repo_edit_s3_secret_access_key_title">SECRET_ACCESS_KEY</string>
     <string name="repo_edit_s3_secret_access_key_error_mandatory">S3 Secret Access Key needed</string>
+    <string name="repo_edit_s3_default_region_title">AWS_DEFAULT_REGION</string>
 </resources>

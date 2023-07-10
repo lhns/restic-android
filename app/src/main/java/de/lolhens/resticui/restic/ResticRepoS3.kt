@@ -7,7 +7,8 @@ class ResticRepoS3(
     password: String,
     private val s3Url: URI,
     private val accessKeyId: String,
-    private val secretAccessKey: String
+    private val secretAccessKey: String,
+    private val s3DefaultRegion: String
 ) : ResticRepo(
     restic,
     password
@@ -18,6 +19,7 @@ class ResticRepoS3(
 
     override fun vars(): List<Pair<String, String>> = listOf(
         Pair("AWS_ACCESS_KEY_ID", accessKeyId),
-        Pair("AWS_SECRET_ACCESS_KEY", secretAccessKey)
+        Pair("AWS_SECRET_ACCESS_KEY", secretAccessKey),
+        Pair("AWS_DEFAULT_REGION", s3DefaultRegion)
     )
 }
