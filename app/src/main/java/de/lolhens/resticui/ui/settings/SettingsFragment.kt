@@ -8,7 +8,9 @@ import androidx.fragment.app.Fragment
 import de.lolhens.resticui.BackupManager
 import de.lolhens.resticui.databinding.FragmentSettingsBinding
 import de.lolhens.resticui.ui.InputDialogUtil
+import de.lolhens.resticui.util.DirectoryChooser
 import de.lolhens.resticui.util.HostnameUtil
+import android.content.Context
 
 class SettingsFragment : Fragment() {
     private var _binding: FragmentSettingsBinding? = null
@@ -53,6 +55,24 @@ class SettingsFragment : Fragment() {
                         println(message)
                     }
                 }
+        }
+
+        val context = requireContext()
+        val sharedPref = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+
+        binding.textDl.text = sharedPref?.getString("dl_path", "") ?: ""
+
+        val directoryChooser = DirectoryChooser.newInstance()
+
+        directoryChooser.register(this, requireContext()) { path ->
+            val editor = sharedPref?.edit()
+            editor?.putString("dl_path", path)
+            editor?.apply()
+            binding.textDl.text = path
+        }
+
+        binding.buttonDlEdit.setOnClickListener {
+            directoryChooser.openDialog()
         }
 
         val restic = BackupManager.instance(requireContext()).restic

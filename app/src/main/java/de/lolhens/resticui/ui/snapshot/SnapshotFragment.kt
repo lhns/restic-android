@@ -3,13 +3,16 @@ package de.lolhens.resticui.ui.snapshot
 import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
 import android.view.*
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.AdapterView
 import android.widget.BaseAdapter
 import android.widget.ListView
+import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import de.lolhens.resticui.BackupManager
@@ -17,6 +20,7 @@ import de.lolhens.resticui.R
 import de.lolhens.resticui.config.RepoConfigId
 import de.lolhens.resticui.databinding.FragmentSnapshotBinding
 import de.lolhens.resticui.restic.ResticFile
+import de.lolhens.resticui.restic.ResticRepo
 import de.lolhens.resticui.restic.ResticSnapshotId
 import de.lolhens.resticui.ui.Formatters
 import java.io.File
@@ -89,7 +93,10 @@ class SnapshotFragment : Fragment() {
                                                         it.path.relativeTo(snapshotRootPath).path.isNotEmpty()
                                             }
                                         ),
-                                        snapshotRootPath
+                                        resticRepo,
+                                        snapshotId,
+                                        snapshotRootPath,
+                                        binding.progressDl
                                     )
 
                                     binding.listFilesSnapshot.onItemClickListener =
@@ -161,7 +168,10 @@ class SnapshotFragment : Fragment() {
 class SnapshotFilesListAdapter(
     private val context: Context,
     private val files: ArrayList<ResticFile>,
-    private val rootPath: File
+    private val resticRepo: ResticRepo,
+    private val snapshotId: ResticSnapshotId,
+    private val rootPath: File,
+    private val progressDl: ProgressBar
 ) : BaseAdapter() {
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val pathNameText: TextView = view.findViewById(R.id.pathname)
@@ -218,6 +228,60 @@ class SnapshotFilesListAdapter(
         holder.pathNameText.text = pathString
         holder.fileDateText.text = dateString
 
+        // Add a click listener to initiate download
+        holder.itemView.setOnClickListener {
+            if (file.type == "file") {
+                // Path where the downloaded file will be saved on the device
+                val sharedPref = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                val downloadPathString = sharedPref?.getString("dl_path", "") ?: ""
+                val downloadPath = File(downloadPathString)
+
+                if (!(downloadPath.exists() && downloadPath.isDirectory)) {
+                    AlertDialog.Builder(context)
+                        .setTitle(R.string.alert_download_file_title)
+                        .setMessage(R.string.alert_download_file_no_dest_dir)
+                        .setNegativeButton(android.R.string.cancel) { _, _ -> }
+                        .show()
+                } else {
+                    AlertDialog.Builder(context)
+                        .setTitle(R.string.alert_download_file_title)
+                        .setMessage(context.getString(R.string.alert_download_file_message, file.path.name, downloadPathString))
+                        .setPositiveButton(android.R.string.ok) { _, _ ->
+                            downloadFile(file, downloadPath)
+                        }
+                        .setNegativeButton(android.R.string.cancel) { _, _ -> }
+                        .show()
+                }
+            }
+        }
+
         return view
     }
+
+    // Function to handle file download
+    private fun downloadFile(file: ResticFile, downloadPath: File) {
+        progressDl.visibility = VISIBLE
+        resticRepo.restore(snapshotId, downloadPath, file)
+            .handle { content, throwable ->
+                val handler = Handler(context.mainLooper)
+                handler.post {
+                    if (content != null) {
+                        // Notify the user that the download is complete
+                        // You can use a Toast or other UI element to display this message
+                        showToast("File downloaded")
+                    } else {
+                        throwable?.printStackTrace()
+
+                        // Notify the user that an error occurred during download
+                        showToast("Failed to download")
+                    }
+                    progressDl.visibility = GONE
+                }
+        }
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+    }
+
 }
