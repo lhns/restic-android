@@ -25,6 +25,8 @@ jobs:
       - name: Keystore
         run: |
           [ "${{ secrets.RELEASE_STORE_BASE64}}" == "" ] || echo "${{ secrets.RELEASE_STORE_BASE64}}" | base64 -d > keystore.jks
+      - name: Download Binaries
+        run: download-binaries.sh
       - name: Build with Gradle
         env:
           CI_VERSION: ${{ github.ref }}
