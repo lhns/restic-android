@@ -232,6 +232,9 @@ class Restic(
             }
         }
 
+    fun cleanCache(): CompletableFuture<Pair<List<String>, List<String>>> =
+        restic(listOf("cache", "--cleanup", "--max-age", "0"))
+
     fun version(): CompletableFuture<String> =
         restic(listOf("version")).thenApply { (out, _) -> out[0] }
 }
