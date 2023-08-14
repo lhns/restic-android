@@ -47,7 +47,7 @@ class SettingsFragment : Fragment() {
         }
 
         binding.buttonCleanup.setOnClickListener {
-            backupManager.restic.restic(listOf("cache", "--cleanup"))
+            backupManager.restic.restic(listOf("cache", "--cleanup", "--max-age", "0"))
                 .handle { message, throwable ->
                     if (throwable != null) {
                         throwable.printStackTrace()
