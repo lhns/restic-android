@@ -28,7 +28,7 @@ downloadBinaries() {
   local target="$(pwd)/app/src/main/jniLibs/$androidArch"
   mkdir -p "$target"
   
-  curl -L -o "$target/libdata_restic.so" "https://github.com/restic/restic/releases/download/v${RESTIC_VERSION}/restic_${RESTIC_VERSION}_linux_${resticArch}.bz2"
+  curl -L "https://github.com/restic/restic/releases/download/v${RESTIC_VERSION}/restic_${RESTIC_VERSION}_linux_${resticArch}.bz2" | bzip2 -dc > "$target/libdata_restic.so"
   
   unpackProot() {
     pushd data/data/com.termux/files/usr
