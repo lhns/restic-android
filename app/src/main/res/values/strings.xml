@@ -35,6 +35,12 @@
     <string name="alert_backup_cancel_message">Do you want to cancel the Backup?</string>
     <string name="alert_delete_snapshot_title">Delete Snapshot</string>
     <string name="alert_delete_snapshot_message">Do you want to delete this Snapshot?</string>
+    <string name="alert_download_file_title">Download File</string>
+    <string name="alert_download_file_message">
+        Do you want to download this file: "%s"
+        here: "%s" ?
+    </string>
+    <string name="alert_download_file_no_dest_dir">Before proceeding, ensure that you have chosen a valid download folder in the settings.</string>
     <string name="notification_channel_backup">Restic Backup</string>
     <string name="notification_backup_title">Restic Backup</string>
     <string name="notification_backup_progress_message">Backup in Progress…</string>
