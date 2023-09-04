@@ -25,11 +25,14 @@ downloadBinaries() {
   
   local target="$(pwd)/app/src/main/jniLibs/$androidArch"
   mkdir -p "$target"
-  
-  curl -sSfL "https://github.com/restic/restic/releases/download/v${RESTIC_VERSION}/restic_${RESTIC_VERSION}_linux_${resticArch}.bz2" | bzip2 -dc > "$target/libdata_restic.so"
+
+  local resticFile="restic_${RESTIC_VERSION}_linux_${resticArch}.bz2"
+  echo "$resticFile"
+  curl -sSfL "https://github.com/restic/restic/releases/download/v${RESTIC_VERSION}/$resticFile" | bzip2 -dc > "$target/libdata_restic.so"
   
   local prootFile
   prootFile="$(curl -sSf "https://packages.termux.dev/apt/termux-main/pool/main/p/proot/" | sed -En "s/.*?(proot_.*?_${packageArch}\\.deb).*/\\1/p")"
+  echo "$prootFile"
   unpackProot() {
     pushd data/data/com.termux/files/usr
     mv bin/proot "$target/libdata_proot.so"
@@ -43,6 +46,7 @@ downloadBinaries() {
   
   local liballocFile
   liballocFile="$(curl -sSf "https://packages.termux.dev/apt/termux-main/pool/main/libt/libtalloc/" | sed -En "s/.*?(libtalloc_.*?_${packageArch}\\.deb).*/\\1/p")"
+  echo "$liballocFile"
   unpackLibtalloc() {
     pushd data/data/com.termux/files/usr
     mv "$(readlink -f lib/libtalloc.so.2)" "$target/libdata_libtalloc.so.2.so"
