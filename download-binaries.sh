@@ -3,8 +3,6 @@
 set -eo pipefail
 
 RESTIC_VERSION=0.16.0
-PROOT_VERSION=5.1.107-60
-LIBTALLOC_VERSION=2.4.1
 
 unpackDebDataFromUrl() {
   local url="$1"
@@ -12,7 +10,7 @@ unpackDebDataFromUrl() {
   local tmpdir
   tmpdir="$(mktemp -d)"
   pushd "$tmpdir"
-  curl -L -o package.deb "$url"
+  curl -sSfLo package.deb "$url"
   ar -x package.deb
   xz -dc data.tar.xz | tar -x
   "$@"
@@ -28,8 +26,10 @@ downloadBinaries() {
   local target="$(pwd)/app/src/main/jniLibs/$androidArch"
   mkdir -p "$target"
   
-  curl -L "https://github.com/restic/restic/releases/download/v${RESTIC_VERSION}/restic_${RESTIC_VERSION}_linux_${resticArch}.bz2" | bzip2 -dc > "$target/libdata_restic.so"
+  curl -sSfL "https://github.com/restic/restic/releases/download/v${RESTIC_VERSION}/restic_${RESTIC_VERSION}_linux_${resticArch}.bz2" | bzip2 -dc > "$target/libdata_restic.so"
   
+  local prootFile
+  prootFile="$(curl -sSf "https://packages.termux.dev/apt/termux-main/pool/main/p/proot/" | sed -En "s/.*?(proot_.*?_${packageArch}\\.deb).*/\\1/p")"
   unpackProot() {
     pushd data/data/com.termux/files/usr
     mv bin/proot "$target/libdata_proot.so"
@@ -39,14 +39,16 @@ downloadBinaries() {
     fi
     popd
   }
-  unpackDebDataFromUrl "https://packages.termux.dev/apt/termux-main/pool/main/p/proot/proot_${PROOT_VERSION}_${packageArch}.deb" unpackProot
+  unpackDebDataFromUrl "https://packages.termux.dev/apt/termux-main/pool/main/p/proot/$prootFile" unpackProot
   
+  local liballocFile
+  liballocFile="$(curl -sSf "https://packages.termux.dev/apt/termux-main/pool/main/libt/libtalloc/" | sed -En "s/.*?(libtalloc_.*?_${packageArch}\\.deb).*/\\1/p")"
   unpackLibtalloc() {
     pushd data/data/com.termux/files/usr
     mv "$(readlink -f lib/libtalloc.so.2)" "$target/libdata_libtalloc.so.2.so"
     popd
   }
-  unpackDebDataFromUrl "https://packages.termux.dev/apt/termux-main/pool/main/libt/libtalloc/libtalloc_${LIBTALLOC_VERSION}_${packageArch}.deb" unpackLibtalloc
+  unpackDebDataFromUrl "https://packages.termux.dev/apt/termux-main/pool/main/libt/libtalloc/$liballocFile" unpackLibtalloc
 }
 
 downloadBinaries arm64 aarch64 arm64-v8a
