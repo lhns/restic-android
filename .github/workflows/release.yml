@@ -37,7 +37,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           path: '*.apk'
-      - uses: AButler/upload-release-assets@v2.0
+      - uses: AButler/upload-release-assets@v3.0
         with:
           files: '*.apk'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
