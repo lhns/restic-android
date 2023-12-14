@@ -34,7 +34,7 @@ jobs:
           echo "GIT_COMMIT_COUNT: $GIT_COMMIT_COUNT"
           ./gradlew assembleRelease
           mv app/build/outputs/apk/*/*.apk .
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path: '*.apk'
       - uses: AButler/upload-release-assets@v3.0

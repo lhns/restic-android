@@ -43,6 +43,6 @@ jobs:
             ./gradlew assembleDebug
           fi
           mv app/build/outputs/apk/*/*.apk .
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path: '*.apk'
