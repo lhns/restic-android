@@ -59,7 +59,7 @@
     <string name="repo_edit_b2_account_id_error_mandatory">B2 Account ID needed</string>
     <string name="repo_edit_b2_uri_title">B2 Endpoint URL</string>
     <string name="repo_edit_b2_uri_error_mandatory">B2 Endpoint URL needed</string>
-    <string name="repo_edit_b2_uri_hint">b2-bucket-name/restic-repository-name</string>
+    <string name="repo_edit_b2_uri_hint">b2-bucketname:path/to/repo</string>
     <string name="repo_edit_rest_uri_title">Rest Endpoint URI</string>
     <string name="repo_edit_rest_uri_error_mandatory">Rest Endpoint URL needed</string>
     <string name="repo_edit_rest_uri_hint">http(s)://basicUser:basicPassword@restServerHostname:restServerPort/resticRepoName</string>
