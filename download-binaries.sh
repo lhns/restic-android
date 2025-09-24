@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-RESTIC_VERSION=0.17.1
+RESTIC_VERSION=0.18.1
 
 unpackDebDataFromUrl() {
   local url="$1"
